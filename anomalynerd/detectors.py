@@ -428,6 +428,22 @@ def _x(v):
         return 0.0
 
 
+def _logspace_if_wide(ys):
+    """If a column's positive values span many orders of magnitude (e.g. dataset sizes,
+    counts, runtimes: 10 ... 1,000,000), a value 100x larger is NOT an outlier — the data
+    naturally covers decades. In that case compare in log space so only values that break
+    the log-scale pattern are flagged. Returns (transformed_ys, is_log). Leaves data
+    unchanged when it is not wide-span or has non-positive values."""
+    import math
+    pos = [y for y in ys if isinstance(y, (int, float)) and y > 0]
+    if len(pos) < len(ys) or len(pos) < 3:
+        return ys, False
+    span = math.log10(max(pos) / min(pos)) if min(pos) > 0 else 0.0
+    if span >= 2.0:   # >= 2 orders of magnitude
+        return [math.log10(y) for y in ys], True
+    return ys, False
+
+
 def _lin_fit(xs, ys):
     """Simple least-squares slope/intercept + residual SD. Returns (0,mean,sd) if degenerate."""
     from statistics import mean, pstdev
@@ -568,6 +584,54 @@ def detect_point_outliers(t: TidyTable, z_thresh=3.5, min_points=5):
                         strength=z, support=1.0,
                         suggestion=f"Single {t.metric_name} value {pts[i][1]:g} at {ax_name}={pts[i][0]:g} "
                                    f"is far from the rest ({z:.0f} robust-SDs) — lone outlier, check it.",
+                    ))
+
+    # ---- categorical mode: an ablation-style table (one metric value per category) ----
+    # A results table like (setting -> accuracy) has an UNORDERED categorical axis, so the
+    # numeric modes above never run. But a lone bad value among the categories (e.g. one
+    # ablation row at 0.30 while the rest are ~0.90) is exactly a 'one against the majority'
+    # outlier. Check each unordered-categorical axis that carries a single value per level.
+    for ax_name, ax in t.axes.items():
+        if ax.kind != "unordered_cat":
+            continue
+        others = [a for a in t.axes if a != ax_name]
+        from itertools import product as _p
+        level_lists = [t.levels(a) for a in others]
+        for combo in (_p(*level_lists) if level_lists else [()]):
+            fixed = dict(zip(others, combo))
+            levels = t.levels(ax_name)
+            pairs = [(lv, t.value_at(**{ax_name: lv}, **fixed)) for lv in levels]
+            pairs = [(lv, v) for lv, v in pairs if is_num(v)]
+            if len(pairs) < min_points:
+                continue
+            ys = [v for _, v in pairs]
+            # If the column spans many orders of magnitude (dataset sizes, counts), decide
+            # outlier status in log space so naturally decade-spanning columns are not flagged.
+            ys_eval, is_log = _logspace_if_wide(ys)
+            data_range = max(ys_eval) - min(ys_eval)
+            if data_range == 0:
+                continue
+            srt = sorted(ys_eval)
+            # the "background" cluster = the middle, trimming up to one extreme from EACH end
+            # (the outlier may be the smallest OR the largest value, so trim both sides).
+            trim = 1 if len(srt) >= 5 else 0
+            core = srt[trim:len(srt) - trim] if trim else srt
+            core_lo, core_hi = min(core), max(core)
+            core_center = median(core)
+            core_spread = core_hi - core_lo
+            thresh = max(6 * core_spread, 0.4 * data_range)
+            outside = [i for i, ev in enumerate(ys_eval)
+                       if abs(ev - core_center) > thresh and (ev < core_lo or ev > core_hi)]
+            if 1 <= len(outside) <= 2:
+                for i in outside:
+                    lv, v = pairs[i]
+                    flags.append(Flag(
+                        type="point_outlier", table=t.name, axis=ax_name, coords=fixed,
+                        detail={"at": lv, "value": v, "mode": "categorical",
+                                "log_scale": is_log},
+                        strength=8.0, support=1.0,
+                        suggestion=f"Single {t.metric_name} value {v:g} at {ax_name}='{lv}' "
+                                   f"stands out from the rest — check it.",
                     ))
     return flags
 

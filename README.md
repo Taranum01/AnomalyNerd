@@ -22,9 +22,29 @@ python -m anomalynerd.cli examples/draft_lottery_1970.csv --metric mean_draft_ra
 python -m anomalynerd.cli results.csv --json          # machine-readable output
 ```
 
+### Analyze a whole article (PDF or LaTeX source)
+
+AnomalyNerd can read the results tables out of a paper, run the pattern detectors on
+them, run statistical and digit checks (statcheck p-value recompute, GRIM mean
+plausibility, Benford leading-digit), and — importantly — tell you exactly what it
+**could not** check.
+
+```bash
+python -m anomalynerd.pdf_cli paper.pdf            # a compiled PDF (incl. appendices)
+python -m anomalynerd.pdf_cli paper.tex            # LaTeX source (far cleaner extraction)
+python -m anomalynerd.pdf_cli paper.pdf --json
+```
+
+Prefer the LaTeX source when you have it: a compiled PDF often stores tables as
+borderless layouts or images that cannot be extracted cleanly, whereas LaTeX ``tabular``
+cells are already delimited. On a sample of random arXiv papers, source ingest read
+usable tables in the majority of papers where PDF extraction read none. Either way, the
+report ends with a "WHAT I COULD NOT CHECK (and why)" section — nothing is silently
+skipped.
+
 Run the tests:
 ```bash
-pytest -q          # 13 checks over synthetic + 6 real datasets
+pytest -q          # 25 checks: CSV detectors + PDF/LaTeX pipeline + stat tests
 ```
 
 ---

@@ -23,7 +23,12 @@ class Axis:
     def sorted_levels(self, levels):
         levels = list(levels)
         if self.kind == "numeric":
-            return sorted(levels, key=lambda x: float(x))
+            def _key(x):
+                try:
+                    return (0, float(x))
+                except (TypeError, ValueError):
+                    return (1, 0.0)   # blanks / non-numeric sort to the end, no crash
+            return sorted(levels, key=_key)
         if self.kind == "ordered_cat" and self.order:
             idx = {v: i for i, v in enumerate(self.order)}
             return sorted(levels, key=lambda x: idx.get(x, len(idx)))

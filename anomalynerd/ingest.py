@@ -12,7 +12,7 @@ Two accepted CSV shapes:
 Schema inference is a best-effort GUESS; every choice can be overridden by the caller.
 """
 from __future__ import annotations
-import csv, re, math
+import csv, os, re, math
 from .model import TidyTable, Axis, MISSING
 
 _METRIC_WORDS = ("rmse", "mae", "mse", "error", "err", "loss", "accuracy", "acc",
@@ -78,10 +78,40 @@ def read_csv(path, metric_col=None, entity_col=None, lower_is_better=None,
     numeric_cols = [h for h in header if _looks_numeric(cols[h])]
     cat_cols = [h for h in header if h not in numeric_cols]
 
+    # An index-like column is numeric with (nearly) one distinct value per row AND looks like
+    # an actual index: integer-valued, non-decreasing, and roughly consecutive (e.g. a serial
+    # 1..N or 'month_num' 1..12). This is an ordered AXIS, not a metric/entity, so it must not
+    # count toward the "many numeric metric columns" test that triggers WIDE mode. Requiring
+    # the index SHAPE (not just near-uniqueness) avoids misreading real metric columns whose
+    # values happen to be distinct (e.g. 0.10, 0.14, 9.80) as an index.
+    def _is_index_like(h):
+        if h not in numeric_cols:
+            return False
+        if len(data) < 3 or len(set(cols[h])) < 0.95 * len(data):
+            return False
+        nums = [_parse_number(v) for v in cols[h]]
+        nums = [x for x in nums if x is not MISSING]
+        if len(nums) < 0.95 * len(data):
+            return False
+        if any(abs(x - round(x)) > 1e-9 for x in nums):   # must be integer-valued
+            return False
+        ints = [round(x) for x in nums]
+        if ints != sorted(ints):                           # must be non-decreasing
+            return False
+        span = ints[-1] - ints[0]
+        # roughly consecutive: the range is close to the count (no huge gaps)
+        return span <= 2 * len(ints)
+
+    index_like = [h for h in numeric_cols if _is_index_like(h)]
+    metric_numeric = [h for h in numeric_cols if h not in index_like]
+
     # decide shape
     metric_by_name = [h for h in header if any(w in h.lower() for w in _METRIC_WORDS)]
 
-    if metric_col is None and len(numeric_cols) >= 2 and len(metric_by_name) == 0:
+    # WIDE only when there are 2+ numeric columns that could each be a metric/entity (i.e.
+    # excluding index columns), and none is obviously named as the metric. A table like
+    # (index, label, one_value) has just one non-index numeric column, so it is LONG.
+    if metric_col is None and len(metric_numeric) >= 2 and len(metric_by_name) == 0:
         # WIDE: many numeric columns, none obviously "the metric" -> entities are those columns.
         # Index columns: caller hint > categorical columns > default to the FIRST column
         # (near-universal convention for a wide results table: leading col is the grid axis).
@@ -108,8 +138,10 @@ def read_csv(path, metric_col=None, entity_col=None, lower_is_better=None,
             return TidyTable(name, axes, entity_axis="method", metric_name="value",
                              lower_is_better=lib, rows=rows)
 
-    # LONG: pick metric col
-    mcol = metric_col or (metric_by_name[0] if metric_by_name else numeric_cols[-1])
+    # LONG: pick metric col. Prefer a name that looks like a metric; otherwise the last
+    # NON-index numeric column (an index like 'month_num' is an axis, never the metric).
+    mcol = metric_col or (metric_by_name[0] if metric_by_name
+                          else (metric_numeric[-1] if metric_numeric else numeric_cols[-1]))
     axis_cols = [h for h in header if h != mcol]
     # Drop caller-ignored columns and redundant continuous covariates: a numeric column
     # with (nearly) one distinct value per row is a per-row attribute (e.g. an uncertainty
@@ -123,6 +155,16 @@ def read_csv(path, metric_col=None, entity_col=None, lower_is_better=None,
         # like 'unc' that pair 1:1 with the index and are per-row attributes, not axes).
         for h in near_unique_numeric[1:]:
             ignore.add(h)
+        # Drop a categorical column that is a 1:1 LABEL ALIAS of a numeric index axis (e.g.
+        # 'month' spelling out 'month_num'): one distinct label per row AND a numeric index
+        # column is present. It is a human-readable name for the index, not an independent
+        # entity axis, so keeping it would spuriously create an entity/win-reversal.
+        has_numeric_index = any(h in index_like for h in axis_cols if h not in ignore)
+        if has_numeric_index:
+            for h in axis_cols:
+                if (h not in ignore and h in cat_cols and h != entity_col
+                        and len(set(cols[h])) >= 0.95 * len(data)):
+                    ignore.add(h)
     axis_cols = [h for h in axis_cols if h not in ignore]
     ecol = entity_col
     if ecol is None:
@@ -149,6 +191,112 @@ def read_csv(path, metric_col=None, entity_col=None, lower_is_better=None,
         lib = any(w in mcol.lower() for w in _LOWER_BETTER) or True
     return TidyTable(name, axes, entity_axis=ecol, metric_name=mcol,
                      lower_is_better=lib, rows=rows)
+
+
+def _median_scale(values):
+    nums = [abs(_parse_number(v)) for v in values]
+    nums = [x for x in nums if x is not MISSING and x != 0]
+    if not nums:
+        return None
+    nums.sort()
+    return nums[len(nums) // 2]
+
+
+def _columns_are_homogeneous(cols, headers):
+    """True if the given numeric columns look like the SAME metric measured for different
+    entities (similar median scale) rather than DIFFERENT metrics (e.g. accuracy vs time vs
+    ratio). Same-metric columns collapse into one entity axis; different-metric columns must
+    be analyzed separately. Heuristic: medians within ~1 order of magnitude."""
+    scales = [_median_scale(cols[h]) for h in headers]
+    scales = [s for s in scales if s]
+    if len(scales) < 2:
+        return True
+    lo, hi = min(scales), max(scales)
+    return lo > 0 and (hi / lo) < 10
+
+
+def read_tables(path, **kwargs):
+    """Like read_csv, but returns a LIST of TidyTables. For a wide table whose numeric
+    columns are DIFFERENT metrics (different scales, e.g. accuracy/time/ratio), each metric
+    column becomes its own single-metric table sharing the index axes, so the detectors never
+    compare unlike quantities. For a homogeneous wide table (same metric per entity) or a
+    normal long table, this returns the single table read_csv would return.
+
+    This is the entry point the PDF / LaTeX article pipeline uses, where wide multi-metric
+    tables are common."""
+    with open(path, newline="", encoding="utf-8-sig") as f:
+        reader = csv.reader(f)
+        header = next(reader)
+        data = [row for row in reader if any(c.strip() for c in row)]
+    cols = {h: [row[i] if i < len(row) else "" for row in data]
+            for i, h in enumerate(header)}
+
+    numeric_cols = [h for h in header if _looks_numeric(cols[h])]
+    cat_cols = [h for h in header if h not in numeric_cols]
+    metric_by_name = [h for h in header if any(w in h.lower() for w in _METRIC_WORDS)]
+
+    # identify index-like columns the same way read_csv does (integer, sorted, consecutive)
+    def _idx_like(h):
+        if h not in numeric_cols or len(data) < 3 or len(set(cols[h])) < 0.95 * len(data):
+            return False
+        nums = [_parse_number(v) for v in cols[h]]
+        nums = [x for x in nums if x is not MISSING]
+        if len(nums) < 0.95 * len(data) or any(abs(x - round(x)) > 1e-9 for x in nums):
+            return False
+        ints = [round(x) for x in nums]
+        return ints == sorted(ints) and (ints[-1] - ints[0]) <= 2 * len(ints)
+
+    metric_numeric = [h for h in numeric_cols if not _idx_like(h)]
+
+    # Split when there are 2+ metric columns that are heterogeneous (different scales =>
+    # different metrics). This holds whether or not the columns are metric-named: a table
+    # with 'accuracy' and 'time' columns has two DIFFERENT metrics and must be split.
+    if (kwargs.get("metric_col") is None and len(metric_numeric) >= 2
+            and not _columns_are_homogeneous(cols, metric_numeric)):
+        # A monotonic numeric column (a sweep variable like 0.0,0.1,0.2,... or a year) is the
+        # ORDERED AXIS the metrics are measured against, not itself a metric. Keep it as an
+        # index column so every split metric table retains its axis (otherwise each metric
+        # would have no axis and nothing to look along).
+        def _is_sweep_axis(h):
+            nums = [_parse_number(v) for v in cols[h]]
+            nums = [x for x in nums if x is not MISSING]
+            if len(nums) < 0.95 * len(data) or len(nums) < 4:
+                return False
+            if len(set(nums)) < 0.9 * len(nums):   # a metric repeats; an axis is ~distinct
+                return False
+            asc = all(nums[i] <= nums[i + 1] for i in range(len(nums) - 1))
+            desc = all(nums[i] >= nums[i + 1] for i in range(len(nums) - 1))
+            return asc or desc
+
+        sweep_axes = [h for h in metric_numeric if _is_sweep_axis(h)]
+        true_metrics = [h for h in metric_numeric if h not in sweep_axes]
+        if len(true_metrics) < 2:
+            return [read_csv(path, **kwargs)]   # not really multi-metric once axis removed
+        index_cols = [h for h in header if h not in true_metrics]  # labels + sweep axes
+        tables = []
+        for mc in true_metrics:
+            # build a one-metric CSV: the index/label/axis columns + this single metric
+            import tempfile
+            keep = index_cols + [mc]
+            tmp = tempfile.NamedTemporaryFile("w", suffix=".csv", delete=False, newline="")
+            w = csv.writer(tmp)
+            w.writerow(keep)
+            for r_i in range(len(data)):
+                w.writerow([cols[c][r_i] for c in keep])
+            tmp.close()
+            try:
+                t = read_csv(tmp.name, metric_col=mc,
+                             name=(kwargs.get("name") or path.split("/")[-1]) + f" [{mc}]")
+                tables.append(t)
+            except Exception:
+                pass
+            finally:
+                os.unlink(tmp.name)
+        if tables:
+            return tables
+
+    # otherwise: one table (homogeneous wide, or normal long)
+    return [read_csv(path, **kwargs)]
 
 
 def _coerce(x):
