@@ -40,6 +40,7 @@ class ExtractedTable:
     tidy: Optional[TidyTable] = None # first metric table (back-compat)
     tidies: list = field(default_factory=list)  # one tidy table per metric
     caveats: list = field(default_factory=list)
+    backend: str = "pdfplumber"  # which extractor produced this table
 
 
 @dataclass
@@ -267,6 +268,19 @@ def parse_pdf(path: str) -> PdfParse:
                 et.index_on_page = idx
                 tables.append(et)
 
+    # Fallback: if pdfplumber found no usable results table, try Docling, a layout-model
+    # extractor (DocLayNet + TableFormer) that reads the borderless tables common in research
+    # papers which the coordinate-based strategies above miss. Docling is an OPTIONAL heavy
+    # dependency; if it is not installed we simply skip this step and report honestly.
+    usable_so_far = sum(1 for t in tables if t.status in ("ok", "partial"))
+    if usable_so_far == 0:
+        docling_tables, docling_note = _try_docling(path)
+        if docling_note:
+            notes.append(docling_note)
+        if docling_tables:
+            # Docling tables replace the pdfplumber 'skipped' noise for a cleaner report.
+            tables = [t for t in tables if t.status in ("ok", "partial")] + docling_tables
+
     if not tables:
         notes.append("no tables were detected in this PDF; if the paper has tables, "
                      "they may be images or use a layout the extractor cannot read")
@@ -277,6 +291,82 @@ def parse_pdf(path: str) -> PdfParse:
             seen.add(s); uniq.append(s)
     return PdfParse(path=path, n_pages=n_pages, tables=tables,
                     stat_strings=uniq, text_pages=text_pages, notes=notes)
+
+
+def _try_docling(path: str):
+    """Run Docling (if installed) and convert its tables to ExtractedTables via the same
+    _assess_and_tidy path. Returns (list_of_ExtractedTable, note_or_None). Forces CPU because
+    Docling's layout model uses float64, which the Mac MPS backend rejects."""
+    try:
+        from docling.document_converter import DocumentConverter, PdfFormatOption
+        from docling.datamodel.base_models import InputFormat
+        from docling.datamodel.pipeline_options import (
+            PdfPipelineOptions, AcceleratorOptions, AcceleratorDevice)
+    except Exception:
+        return [], ("a layout-model fallback (Docling) is not installed, so borderless tables "
+                    "that the default extractor cannot read were not recovered; "
+                    "`pip install docling` to enable it")
+    try:
+        opts = PdfPipelineOptions()
+        opts.accelerator_options = AcceleratorOptions(device=AcceleratorDevice.CPU)
+        conv = DocumentConverter(
+            format_options={InputFormat.PDF: PdfFormatOption(pipeline_options=opts)})
+        doc = conv.convert(path).document
+    except Exception as e:
+        return [], f"the Docling fallback failed to convert this PDF ({type(e).__name__})"
+    out = []
+    skipped_tables = 0
+    for tb in getattr(doc, "tables", []):
+        raw = _docling_table_to_rows(tb, doc)
+        if raw is None or len(raw) < 2:
+            skipped_tables += 1
+            continue
+        et = _assess_and_tidy(raw, 0, len(out))
+        et.backend = "docling"
+        if et.status in ("ok", "partial"):
+            if "recovered by the Docling layout-model fallback" not in (et.reason or ""):
+                et.caveats.append("recovered by the Docling layout-model fallback")
+            out.append(et)
+    note = None
+    if not out:
+        note = "the Docling fallback ran but still produced no usable results table"
+        if skipped_tables:
+            note += f" ({skipped_tables} table(s) could not be exported)"
+    return out, note
+
+
+def _docling_table_to_rows(tb, doc):
+    """Robustly turn one Docling table into a header+rows list, trying several export paths
+    across Docling versions. Returns None if every path fails (the table is skipped without
+    failing the whole fallback). Handles the AttributeError/TypeError differences between
+    export_to_dataframe(doc), export_to_dataframe(), and the raw grid-cell structure."""
+    # 1) dataframe with the doc argument (newer API)
+    for call in (lambda: tb.export_to_dataframe(doc), lambda: tb.export_to_dataframe()):
+        try:
+            df = call()
+            header = [str(c) for c in df.columns]
+            body = [[("" if v is None else str(v)) for v in row]
+                    for row in df.values.tolist()]
+            return [header] + body
+        except (TypeError, AttributeError):
+            continue
+        except Exception:
+            continue
+    # 2) raw grid cells (table_cells / data.grid), tolerant of schema differences
+    try:
+        data = getattr(tb, "data", None)
+        grid = getattr(data, "grid", None) if data is not None else None
+        if grid:
+            rows = []
+            for row in grid:
+                rows.append([("" if c is None else str(getattr(c, "text", c))).strip()
+                             for c in row])
+            rows = [r for r in rows if any(c for c in r)]
+            if len(rows) >= 2:
+                return rows
+    except Exception:
+        pass
+    return None
 
 
 def _dedupe_skipped(skipped):

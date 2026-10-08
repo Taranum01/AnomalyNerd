@@ -3,5 +3,10 @@
 pdfplumber        # extract tables from PDFs
 scipy             # p-value recompute (statcheck) and Benford chi-square
 
+# Optional: a layout-model fallback for borderless tables in PDFs that pdfplumber
+# cannot read. Heavy (pulls torch + ML models); install only if you need PDF fallback.
+# The pipeline runs fine without it and reports honestly when it is absent.
+#   pip install docling
+
 # Development:
 pytest>=7.0       # run the test suite

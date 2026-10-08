@@ -154,6 +154,25 @@ def plant_anomaly(tidy, kind, rng):
     return t, gt
 
 
+def _injection_is_subtle(tidy, gt):
+    """Was the planted value only weakly out of pattern? Compares the injected value against
+    the ORIGINAL column's robust spread (median + MAD). If it sits within ~5 robust-SDs of
+    the rest, a miss is honest (the value is not a clear anomaly), not a detector gap."""
+    import statistics
+    vals = [r.get("value") for r in tidy.rows if isinstance(r.get("value"), (int, float))]
+    if len(vals) < 4:
+        return True
+    med = statistics.median(vals)
+    mad = statistics.median([abs(v - med) for v in vals]) or 0.0
+    scale = 1.4826 * mad
+    planted = gt.get("planted_value")
+    if scale == 0 or planted is None:
+        # degenerate spread: fall back to range comparison
+        rng = (max(vals) - min(vals)) or 1.0
+        return planted is not None and abs(planted - med) < 2 * rng
+    return abs(planted - med) / scale < 5.0
+
+
 def _flag_hits(flags, gt):
     """Did any HIGH/MEDIUM flag land on the planted cell's coordinates?"""
     hi_med = [f for f in flags if f.priority in ("HIGH", "MEDIUM")]
@@ -206,6 +225,7 @@ def run(n_papers=40, seed=7, outdir="/tmp/pdf_dev/arxiv_bench", series=False):
     per_kind = {k: {"tp": 0, "fn": 0} for k in KINDS}
     clean_flagged = 0
     rows = []
+    miss_reasons = {"detector_silent": 0, "flagged_elsewhere": 0, "subtle_injection": 0}
     for pi, (aid, tidy) in enumerate(pool):
         # baseline: does the CLEAN table flag anything hi/med?
         clean_flags = analyze(tidy)
@@ -221,8 +241,20 @@ def run(n_papers=40, seed=7, outdir="/tmp/pdf_dev/arxiv_bench", series=False):
             flags = analyze(planted)
             hit, n_himed = _flag_hits(flags, gt)
             per_kind[kind]["tp" if hit else "fn"] += 1
+            reason = None
+            if not hit:
+                # classify WHY it was missed, honestly:
+                #  - detector_silent : no hi/med flag anywhere -> the detector did not react
+                #  - flagged_elsewhere: a hi/med flag fired but not on the planted cell
+                #                       (localization/scoring issue, detector DID react)
+                #  - subtle_injection : the injected value is within ~5 robust-SDs of the
+                #                       column, i.e. genuinely not a clear anomaly
+                reason = ("flagged_elsewhere" if n_himed > 0
+                          else ("subtle_injection" if _injection_is_subtle(tidy, gt)
+                                else "detector_silent"))
+                miss_reasons[reason] += 1
             rows.append({"paper": aid, "kind": kind, "detected": hit,
-                         "clean_had_flag": bool(clean_hi)})
+                         "miss_reason": reason, "clean_had_flag": bool(clean_hi)})
 
     # ---- summary ----
     print("=" * 70)
@@ -242,6 +274,14 @@ def run(n_papers=40, seed=7, outdir="/tmp/pdf_dev/arxiv_bench", series=False):
         print(f"  {k:14}: {tp}/{tot} caught  ({rec:.0f}% recall)")
     print(f"\nOverall planted-anomaly recall: {total_tp}/{total} "
           f"({100*total_tp/max(1,total):.0f}%)")
+    nmiss = sum(miss_reasons.values())
+    print(f"\nMiss analysis ({nmiss} misses):")
+    print(f"  subtle injection (within ~5 robust-SDs, not a clear anomaly): "
+          f"{miss_reasons['subtle_injection']}")
+    print(f"  flagged elsewhere on the table (localization, detector DID react): "
+          f"{miss_reasons['flagged_elsewhere']}")
+    print(f"  detector silent (a possible real detector gap): "
+          f"{miss_reasons['detector_silent']}")
 
     out = os.path.join(outdir, "arxiv_ground_truth_benchmark.json")
     with open(out, "w") as f:

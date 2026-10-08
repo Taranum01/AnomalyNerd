@@ -429,19 +429,29 @@ def _x(v):
 
 
 def _logspace_if_wide(ys):
-    """If a column's positive values span many orders of magnitude (e.g. dataset sizes,
-    counts, runtimes: 10 ... 1,000,000), a value 100x larger is NOT an outlier — the data
-    naturally covers decades. In that case compare in log space so only values that break
-    the log-scale pattern are flagged. Returns (transformed_ys, is_log). Leaves data
-    unchanged when it is not wide-span or has non-positive values."""
+    """If a column's positive values are GENUINELY SPREAD across many orders of magnitude
+    (e.g. dataset sizes, counts, runtimes populated evenly from 10 to 1,000,000), a value
+    10x larger is not an outlier — the data naturally covers decades, so compare in log
+    space. But if most values cluster tightly and only one or two are extreme, those extremes
+    are real outliers and must NOT be hidden by a log transform. We distinguish the two by
+    removing up to two extreme values and checking whether the REMAINING values still span a
+    wide range: if they do, the spread is genuine (use log); if they collapse to a tight
+    cluster, the extremes are outliers (keep linear). Returns (transformed_ys, is_log)."""
     import math
     pos = [y for y in ys if isinstance(y, (int, float)) and y > 0]
-    if len(pos) < len(ys) or len(pos) < 3:
+    if len(pos) < len(ys) or len(pos) < 5:
         return ys, False
     span = math.log10(max(pos) / min(pos)) if min(pos) > 0 else 0.0
-    if span >= 2.0:   # >= 2 orders of magnitude
+    if span < 2.0:                      # not wide at all
+        return ys, False
+    # strip up to two extremes from each end; is the CORE still spread across decades?
+    srt = sorted(pos)
+    core = srt[2:-2] if len(srt) >= 7 else srt[1:-1]
+    core_span = (math.log10(max(core) / min(core))
+                 if core and min(core) > 0 else 0.0)
+    if core_span >= 1.5:                # genuine decade-spread data -> log is appropriate
         return [math.log10(y) for y in ys], True
-    return ys, False
+    return ys, False                    # clustered + extremes -> keep linear so outliers show
 
 
 def _lin_fit(xs, ys):
@@ -633,6 +643,42 @@ def detect_point_outliers(t: TidyTable, z_thresh=3.5, min_points=5):
                         suggestion=f"Single {t.metric_name} value {v:g} at {ax_name}='{lv}' "
                                    f"stands out from the rest — check it.",
                     ))
+
+    # ---- whole-table pass: a lone GROSS outlier in a table whose slices are each too small
+    # for the per-slice passes above. A table like (3 settings x 2 methods) has only 3 points
+    # per series, below min_points, so an obvious outlier (e.g. 443 among values near 60-90)
+    # is missed. Pool EVERY metric value in the table and flag a single value that is grossly
+    # outside the rest. The threshold is deliberately high (gross outliers only) so this does
+    # not add false positives on normal tables. Skipped if an outlier was already flagged.
+    if not any(f.type == "point_outlier" for f in flags):
+        allvals = [(r, r.get("value")) for r in t.rows
+                   if isinstance(r.get("value"), (int, float))]
+        ys = [v for _, v in allvals]
+        if len(ys) >= 5:
+            ys_eval, is_log = _logspace_if_wide(ys)
+            srt = sorted(ys_eval)
+            core = srt[1:-1] if len(srt) >= 5 else srt
+            core_center = median(core)
+            core_mad = median([abs(c - core_center) for c in core]) or 0.0
+            scale = 1.4826 * core_mad
+            data_range = (max(ys_eval) - min(ys_eval)) or 1.0
+            # gross = far beyond the core by robust-SDs AND a big fraction of the whole range
+            outside = []
+            for i, ev in enumerate(ys_eval):
+                far_sd = scale > 0 and abs(ev - core_center) / scale > 8.0
+                far_rng = abs(ev - core_center) > 0.5 * data_range
+                if far_sd and far_rng:
+                    outside.append(i)
+            if len(outside) == 1:
+                r, v = allvals[outside[0]]
+                coords = {k: val for k, val in r.items() if k != "value"}
+                flags.append(Flag(
+                    type="point_outlier", table=t.name, axis=None, coords=coords,
+                    detail={"value": v, "mode": "whole_table", "log_scale": is_log},
+                    strength=9.0, support=1.0,
+                    suggestion=f"Single {t.metric_name} value {v:g} at {coords} stands out "
+                               f"grossly from every other value in the table — check it.",
+                ))
     return flags
 
 

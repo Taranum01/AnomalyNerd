@@ -108,10 +108,17 @@ def test_newcomb_two_outliers_no_noise():
 
 # --------------------------------------------------------------- Draft lottery (T8 trend)
 def test_draft_lottery_trend():
-    t = read_csv(os.path.join(EX, "draft_lottery_1970.csv"),
-                 metric_col="mean_draft_rank", ignore_cols=["month"])
-    # without a flatness hint: a low-confidence candidate only
+    # Auto-detection: no metric_col / ignore hints. Schema inference must recognize month_num
+    # as the index axis, mean_draft_rank as the metric, and drop the redundant 'month' label
+    # (a 1:1 alias of month_num) rather than treating it as an entity axis.
+    t = read_csv(os.path.join(EX, "draft_lottery_1970.csv"))
+    assert t.metric_name == "mean_draft_rank", "metric should auto-detect as mean_draft_rank"
+    assert "month" not in t.axes, "the redundant 'month' label alias should be dropped"
+    assert "month_num" in t.axes, "month_num should be kept as the numeric index axis"
+    # without a flatness hint: a low-confidence candidate only, and NO spurious win_reversal
     flags_default = analyze(t)
+    assert not _by(flags_default, "win_reversal"), \
+        "a redundant month label must not create a spurious best-method reversal"
     tr = _by(flags_default, "trend")
     assert tr, "a downward trend should be detected"
     assert tr[0].priority == "LOW", "trend is a LOW candidate unless axis is expected flat"
@@ -169,3 +176,33 @@ def test_product_tier_cat_exception():
     assert ce, "Premium-usually-beats-Standard with one exception should be flagged"
     d = ce[0].detail
     assert d["fails"] == 1 and d["holds"] == 7, f"expected 7 holds / 1 exception, got {d}"
+
+
+def test_whole_table_gross_outlier_small_slices():
+    """A gross outlier in a table whose per-slice series are too short for the normal
+    point-outlier pass (e.g. 3 settings x 2 methods) is still caught by the whole-table pass,
+    while a normal table stays quiet."""
+    import csv, tempfile, os
+    from anomalynerd.ingest import read_csv
+    from anomalynerd.analyze import analyze
+    # 3 x 2 table, one gross outlier (443 among ~60-90)
+    p = tempfile.NamedTemporaryFile("w", suffix=".csv", delete=False, newline="")
+    w = csv.writer(p); w.writerow(["setting", "method_A", "method_B"])
+    for row in [["s1", 90.9, 90.3], ["s2", 443.0, 83.0], ["s3", 55.7, 73.9]]:
+        w.writerow(row)
+    p.close()
+    flags = analyze(read_csv(p.name))
+    os.unlink(p.name)
+    po = [f for f in flags if f.type == "point_outlier" and f.priority in ("HIGH", "MEDIUM")]
+    assert po, "a gross outlier in a small-slice table should be caught by the whole-table pass"
+
+    # a normal small table must stay quiet (no false positive)
+    p2 = tempfile.NamedTemporaryFile("w", suffix=".csv", delete=False, newline="")
+    w = csv.writer(p2); w.writerow(["setting", "method_A", "method_B"])
+    for row in [["s1", 90.9, 90.3], ["s2", 88.0, 83.0], ["s3", 85.7, 86.9]]:
+        w.writerow(row)
+    p2.close()
+    flags2 = analyze(read_csv(p2.name))
+    os.unlink(p2.name)
+    assert not [f for f in flags2 if f.type == "point_outlier" and f.priority == "HIGH"], \
+        "a normal small table must not raise a whole-table false positive"

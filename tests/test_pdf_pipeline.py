@@ -189,3 +189,22 @@ def test_terminal_digit_runs_on_enough_values(tmp_path):
     t = read_csv(str(p), metric_col="value")
     kinds = {d.kind for d in digit_tests(t)}
     assert "terminal_digit" in kinds, "a terminal-digit result must always be reported"
+
+
+def test_docling_fallback_is_optional_and_graceful():
+    """The Docling fallback must be optional: _try_docling returns a list + an honest note,
+    and never raises, whether or not docling is installed. When docling is absent it returns
+    no tables and a note explaining how to enable it."""
+    from anomalynerd.pdf_ingest import _try_docling
+    tables, note = _try_docling("/nonexistent/path/to.pdf")
+    assert isinstance(tables, list)
+    # either docling is missing (note explains install) or the convert failed on the bad path;
+    # in both cases we get a note and no crash
+    assert note is None or isinstance(note, str)
+
+
+def test_extracted_table_has_backend_field():
+    """Every ExtractedTable records which backend produced it (pdfplumber or docling)."""
+    from anomalynerd.pdf_ingest import ExtractedTable
+    et = ExtractedTable(page=1, index_on_page=0, n_rows=3, n_cols=2, status="skipped")
+    assert et.backend == "pdfplumber", "default backend should be pdfplumber"

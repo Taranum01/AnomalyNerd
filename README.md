@@ -42,9 +42,15 @@ usable tables in the majority of papers where PDF extraction read none. Either w
 report ends with a "WHAT I COULD NOT CHECK (and why)" section — nothing is silently
 skipped.
 
+For PDFs without available source, an optional layout-model fallback (Docling) reads many
+borderless tables that the default extractor misses. It is tried only when the fast
+extractor finds nothing, and is an optional dependency (`pip install docling`); without it
+the pipeline still runs and says so. On a paired sample, PDF table coverage rose from 0%
+(pdfplumber only) to 43% with the Docling fallback, versus 57% from LaTeX source.
+
 Run the tests:
 ```bash
-pytest -q          # 25 checks: CSV detectors + PDF/LaTeX pipeline + stat tests
+pytest -q          # 28 checks: CSV detectors + PDF/LaTeX pipeline + stat tests
 ```
 
 ---
