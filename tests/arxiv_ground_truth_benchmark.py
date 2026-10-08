@@ -1,6 +1,6 @@
-"""Ground-truth arXiv benchmark for AnomalyNerd (the 'arXiv test as in HallucinationNerd').
+"""Ground-truth arXiv benchmark for AnomalyNerd.
 
-HallucinationNerd got objective ground truth by swapping cited sources, so the right answer
+A companion citation-verification approach got objective ground truth by swapping cited sources, so the right answer
 was known. We do the analogous thing for results tables: take REAL results tables from random
 arXiv papers (via LaTeX source, which extracts cleanly), and for each one create a matched
 pair:

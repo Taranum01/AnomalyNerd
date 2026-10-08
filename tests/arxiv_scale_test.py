@@ -6,7 +6,7 @@ tables), downloads each PDF, runs analyze_pdf on it, and reports:
   - FINDINGS: pattern anomalies + statistical/digit findings per paper
   - the honest 'could not check' tally
 
-This mirrors the HallucinationNerd random-arXiv test in spirit: no cherry-picking, report
+This mirrors a random-arXiv test in spirit: no cherry-picking, report
 what the tool actually does on papers in the wild, including the (expected) cases where
 tables are images or layouts the extractor cannot read.
 """
