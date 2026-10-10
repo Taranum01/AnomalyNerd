@@ -22,6 +22,23 @@ python -m anomalynerd.cli examples/draft_lottery_1970.csv --metric mean_draft_ra
 python -m anomalynerd.cli results.csv --json          # machine-readable output
 ```
 
+### Generate a caption for a table
+
+Because detecting anomalies means detecting patterns, AnomalyNerd can also describe a table in
+a grounded caption built only from what it computed (no made-up context). You choose how much
+caption you want, and can optionally compare against a paper's real caption on the claims the
+table can actually verify.
+
+```bash
+python -m anomalynerd.cli results.csv --caption medium          # short | medium | detailed
+python -m anomalynerd.cli results.csv --caption-words 20        # target a word budget
+python -m anomalynerd.cli results.csv --caption --compare-caption "the paper's real caption"
+```
+
+The comparison is deliberately scoped to checkable claims (trends, best method, shifts,
+outliers, numbers) and ignores context the numbers cannot confirm (dataset names, "bold =
+best"). Human captions vary in quality, so this is a descriptive comparison, not a score.
+
 ### Analyze a whole article (PDF or LaTeX source)
 
 AnomalyNerd can read the results tables out of a paper, run the pattern detectors on

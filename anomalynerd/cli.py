@@ -65,6 +65,13 @@ def main(argv=None):
     ap.add_argument("--expect-increasing", nargs="*", default=None, help="Axes where the metric should increase")
     ap.add_argument("--expect-decreasing", nargs="*", default=None, help="Axes where the metric should decrease")
     ap.add_argument("--expect-flat", nargs="*", default=None, help="Axes that should be flat/random (a trend there is a real anomaly, e.g. a lottery)")
+    ap.add_argument("--caption", nargs="?", const="medium", default=None,
+                    choices=["short", "medium", "detailed"],
+                    help="Generate a grounded caption for the table (optionally: short/medium/detailed; default medium)")
+    ap.add_argument("--caption-words", type=int, default=None,
+                    help="Target word budget for the caption (overrides --caption level)")
+    ap.add_argument("--compare-caption", default=None,
+                    help="Compare the generated caption against this real caption (checkable claims only)")
     ap.add_argument("--json", action="store_true", help="Emit JSON instead of a text report")
     args = ap.parse_args(argv)
 
@@ -89,12 +96,31 @@ def main(argv=None):
 
     flags = analyze(t, expected_monotonic=expected or None, expect_flat=args.expect_flat)
 
+    # caption feature (generate, and optionally compare to a real caption)
+    want_caption = args.caption is not None or args.caption_words is not None or args.compare_caption is not None
+    caption = None
+    if want_caption:
+        from .caption import generate_caption
+        caption = generate_caption(t, flags, level=(args.caption or "medium"),
+                                   word_budget=args.caption_words)
+
     if args.json:
-        print(json.dumps({"table": t.name, "metric": t.metric_name,
-                          "lower_is_better": t.lower_is_better,
-                          "flags": [f.to_dict() for f in flags]}, indent=2))
+        out = {"table": t.name, "metric": t.metric_name,
+               "lower_is_better": t.lower_is_better,
+               "flags": [f.to_dict() for f in flags]}
+        if caption is not None:
+            out["caption"] = caption
+        if args.compare_caption is not None:
+            from .caption_compare import compare_captions
+            out["caption_comparison"] = compare_captions(caption, args.compare_caption)
+        print(json.dumps(out, indent=2))
     else:
         print(_fmt_report(flags, t.name))
+        if caption is not None:
+            print("\nCaption:\n  " + caption)
+        if args.compare_caption is not None:
+            from .caption_compare import format_comparison
+            print("\n" + format_comparison(caption, args.compare_caption))
     return 0
 
 
