@@ -72,6 +72,7 @@ def main(argv=None):
                     help="Target word budget for the caption (overrides --caption level)")
     ap.add_argument("--compare-caption", default=None,
                     help="Compare the generated caption against this real caption (checkable claims only)")
+    ap.add_argument("--html", metavar="PATH", help="Write a local HTML report to this file")
     ap.add_argument("--json", action="store_true", help="Emit JSON instead of a text report")
     args = ap.parse_args(argv)
 
@@ -103,6 +104,11 @@ def main(argv=None):
         from .caption import generate_caption
         caption = generate_caption(t, flags, level=(args.caption or "medium"),
                                    word_budget=args.caption_words)
+
+    if args.html:
+        from pathlib import Path
+        from .html_report import render_report
+        Path(args.html).write_text(render_report(t, flags, caption), encoding="utf-8")
 
     if args.json:
         out = {"table": t.name, "metric": t.metric_name,

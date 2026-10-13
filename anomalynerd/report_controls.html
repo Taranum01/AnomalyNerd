@@ -1,0 +1,465 @@
+<div id="ui-edit-bar" style="display:none;position:fixed;top:0;left:0;right:0;z-index:10000;
+  padding:10px 20px;background:rgba(255,255,255,0.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  flex-direction:column;gap:8px;font-family:Verdana,sans-serif;
+  box-shadow:0 1px 3px rgba(0,0,0,0.08),0 4px 12px rgba(0,0,0,0.04);border-bottom:1px solid rgba(0,0,0,0.06);">
+  
+  <div style="display:flex;align-items:center;justify-content:space-between;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#007AFF" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      <span style="color:#1A2B3D;font-size:calc(13px * var(--font-scale));font-weight:600;">Edit Mode</span>
+      <span style="color:#6B7B8D;font-size:calc(12px * var(--font-scale));">Click any text to edit directly</span>
+    </div>
+    <div style="display:flex;gap:6px;">
+      <button onclick="openSourceEditor()" style="padding:5px 12px;border-radius:6px;border:1px solid #E5E7EB;font-size:calc(12px * var(--font-scale));font-weight:600;cursor:pointer;background:#FFFFFF;color:#374151;">Source</button>
+      <button onclick="saveEdits()" style="padding:5px 12px;border-radius:6px;border:none;font-size:calc(12px * var(--font-scale));font-weight:600;cursor:pointer;background:#34C759;color:#FFFFFF;">Save</button>
+      <button onclick="downloadEdits()" style="padding:5px 12px;border-radius:6px;border:none;font-size:calc(12px * var(--font-scale));font-weight:600;cursor:pointer;background:#007AFF;color:#FFFFFF;">Download</button>
+      <button onclick="cancelEdits()" style="padding:5px 12px;border-radius:6px;border:1px solid #E5E7EB;font-size:calc(12px * var(--font-scale));font-weight:600;cursor:pointer;background:#FFFFFF;color:#374151;">Cancel</button>
+    </div>
+  </div>
+  
+  <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
+    
+    <button onclick="document.execCommand('undo')" title="Undo" style="width:28px;height:28px;border:none;border-radius:6px;background:rgba(0,0,0,0.04);cursor:pointer;color:#374151;display:flex;align-items:center;justify-content:center;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+    </button>
+    <button onclick="document.execCommand('redo')" title="Redo" style="width:28px;height:28px;border:none;border-radius:6px;background:rgba(0,0,0,0.04);cursor:pointer;color:#374151;display:flex;align-items:center;justify-content:center;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/></svg>
+    </button>
+    <div style="width:1px;height:20px;background:rgba(0,0,0,0.1);margin:0 4px;"></div>
+    
+    <button onclick="document.execCommand('bold')" title="Bold" style="width:28px;height:28px;border:none;border-radius:6px;background:rgba(0,0,0,0.04);cursor:pointer;color:#374151;font-weight:800;font-size:calc(14px * var(--font-scale));">B</button>
+    <button onclick="document.execCommand('italic')" title="Italic" style="width:28px;height:28px;border:none;border-radius:6px;background:rgba(0,0,0,0.04);cursor:pointer;color:#374151;font-style:italic;font-size:calc(14px * var(--font-scale));font-family:serif;">I</button>
+    <div style="width:1px;height:20px;background:rgba(0,0,0,0.1);margin:0 4px;"></div>
+    
+    <button onclick="changeFontSize(-2)" title="Decrease font size (selected text)" style="width:28px;height:28px;border:none;border-radius:6px;background:rgba(0,0,0,0.04);cursor:pointer;color:#374151;font-size:calc(11px * var(--font-scale));font-weight:700;">A-</button>
+    <button onclick="changeFontSize(2)" title="Increase font size (selected text)" style="width:28px;height:28px;border:none;border-radius:6px;background:rgba(0,0,0,0.04);cursor:pointer;color:#374151;font-size:calc(16px * var(--font-scale));font-weight:700;">A+</button>
+    <div style="width:1px;height:20px;background:rgba(0,0,0,0.1);margin:0 4px;"></div>
+    
+    <button onclick="document.execCommand('justifyLeft')" title="Align left" style="width:28px;height:28px;border:none;border-radius:6px;background:rgba(0,0,0,0.04);cursor:pointer;color:#374151;display:flex;align-items:center;justify-content:center;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M3 6h18M3 12h12M3 18h16"/></svg>
+    </button>
+    <button onclick="document.execCommand('justifyCenter')" title="Align center" style="width:28px;height:28px;border:none;border-radius:6px;background:rgba(0,0,0,0.04);cursor:pointer;color:#374151;display:flex;align-items:center;justify-content:center;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M3 6h18M6 12h12M4 18h16"/></svg>
+    </button>
+    <button onclick="document.execCommand('justifyRight')" title="Align right" style="width:28px;height:28px;border:none;border-radius:6px;background:rgba(0,0,0,0.04);cursor:pointer;color:#374151;display:flex;align-items:center;justify-content:center;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M3 6h18M9 12h12M5 18h16"/></svg>
+    </button>
+    <div style="width:1px;height:20px;background:rgba(0,0,0,0.1);margin:0 4px;"></div>
+    
+    <div style="position:relative;display:inline-block;">
+      <button onclick="togglePanel('text-color-panel')" title="Text color" style="width:28px;height:28px;border:none;border-radius:6px;background:rgba(0,0,0,0.04);cursor:pointer;color:#374151;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1px;">
+        <span style="font-size:calc(13px * var(--font-scale));font-weight:700;line-height:1;">A</span>
+        <div style="width:14px;height:3px;background:linear-gradient(90deg,#FF3B30,#007AFF,#34C759);border-radius:1px;"></div>
+      </button>
+      <div id="text-color-panel" style="display:none;position:absolute;top:32px;left:0;background:#FFFFFF;border-radius:8px;padding:8px;box-shadow:0 8px 24px rgba(0,0,0,0.15);border:1px solid rgba(0,0,0,0.08);z-index:10001;grid-template-columns:repeat(4,1fr);gap:4px;">
+        <button onclick="applyColor('#1A2B3D')" style="width:24px;height:24px;border-radius:50%;border:2px solid transparent;background:#1A2B3D;cursor:pointer;"></button>
+        <button onclick="applyColor('#007AFF')" style="width:24px;height:24px;border-radius:50%;border:2px solid transparent;background:#007AFF;cursor:pointer;"></button>
+        <button onclick="applyColor('#34C759')" style="width:24px;height:24px;border-radius:50%;border:2px solid transparent;background:#34C759;cursor:pointer;"></button>
+        <button onclick="applyColor('#FF9500')" style="width:24px;height:24px;border-radius:50%;border:2px solid transparent;background:#FF9500;cursor:pointer;"></button>
+        <button onclick="applyColor('#FF3B30')" style="width:24px;height:24px;border-radius:50%;border:2px solid transparent;background:#FF3B30;cursor:pointer;"></button>
+        <button onclick="applyColor('#AF52DE')" style="width:24px;height:24px;border-radius:50%;border:2px solid transparent;background:#AF52DE;cursor:pointer;"></button>
+        <button onclick="applyColor('#6B7B8D')" style="width:24px;height:24px;border-radius:50%;border:2px solid transparent;background:#6B7B8D;cursor:pointer;"></button>
+        <button onclick="applyColor('#FFFFFF')" style="width:24px;height:24px;border-radius:50%;border:2px solid #555;background:#FFFFFF;cursor:pointer;"></button>
+      </div>
+    </div>
+    
+    <div style="position:relative;display:inline-block;">
+      <button onclick="togglePanel('bg-color-panel')" title="Background color" style="width:28px;height:28px;border:none;border-radius:6px;background:rgba(0,0,0,0.04);cursor:pointer;color:#374151;display:flex;align-items:center;justify-content:center;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg>
+      </button>
+      <div id="bg-color-panel" style="display:none;position:absolute;top:32px;left:0;background:#FFFFFF;border-radius:8px;padding:8px;box-shadow:0 8px 24px rgba(0,0,0,0.12);z-index:10001;grid-template-columns:repeat(4,1fr);gap:4px;">
+        <button onclick="applyBgColor('#E8F4FD')" style="width:24px;height:24px;border-radius:50%;border:2px solid #007AFF;background:#E8F4FD;cursor:pointer;"></button>
+        <button onclick="applyBgColor('#E8FFF5')" style="width:24px;height:24px;border-radius:50%;border:2px solid #34C759;background:#E8FFF5;cursor:pointer;"></button>
+        <button onclick="applyBgColor('#FFF8E1')" style="width:24px;height:24px;border-radius:50%;border:2px solid #FF9500;background:#FFF8E1;cursor:pointer;"></button>
+        <button onclick="applyBgColor('#FFF0F1')" style="width:24px;height:24px;border-radius:50%;border:2px solid #FF3B30;background:#FFF0F1;cursor:pointer;"></button>
+        <button onclick="applyBgColor('#F3EEFF')" style="width:24px;height:24px;border-radius:50%;border:2px solid #AF52DE;background:#F3EEFF;cursor:pointer;"></button>
+        <button onclick="applyBgColor('#F5F6F8')" style="width:24px;height:24px;border-radius:50%;border:2px solid #9CA3AF;background:#F5F6F8;cursor:pointer;"></button>
+        <button onclick="applyBgColor('#FFFFFF')" style="width:24px;height:24px;border-radius:50%;border:2px solid #D1D5DB;background:#FFFFFF;cursor:pointer;"></button>
+        <button onclick="applyBgColor('transparent')" style="width:24px;height:24px;border-radius:50%;border:2px solid #555;background:repeating-conic-gradient(#555 0% 25%,transparent 0% 50%) 50%/8px 8px;cursor:pointer;" title="None"></button>
+      </div>
+    </div>
+    <div style="width:1px;height:20px;background:rgba(0,0,0,0.1);margin:0 4px;"></div>
+    
+    <select onchange="applyFont(this.value);this.selectedIndex=0;" style="height:28px;border:none;border-radius:6px;background:rgba(255,255,255,0.06);color:#CDD6F4;font-size:calc(12px * var(--font-scale));padding:0 8px;cursor:pointer;outline:none;">
+      <option value="" disabled selected>Font</option>
+      <option value="'Helvetica Neue',Helvetica,Arial,sans-serif">System</option>
+      <option value="'SF Mono',SFMono-Regular,Menlo,monospace">Mono</option>
+      <option value="Georgia,'Times New Roman',serif">Serif</option>
+    </select>
+    <div style="width:1px;height:20px;background:rgba(0,0,0,0.1);margin:0 4px;"></div>
+    
+    <div style="position:relative;display:inline-block;">
+      <button onclick="togglePanel('badge-panel')" title="Insert badge" style="height:28px;border:none;border-radius:6px;background:rgba(0,0,0,0.04);cursor:pointer;color:#374151;padding:0 8px;font-size:calc(11px * var(--font-scale));font-weight:600;display:flex;align-items:center;gap:4px;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>Badge
+      </button>
+      <div id="badge-panel" style="display:none;position:absolute;top:32px;left:0;background:#FFFFFF;border-radius:8px;padding:8px;box-shadow:0 8px 24px rgba(0,0,0,0.12);z-index:10001;flex-direction:column;gap:4px;min-width:120px;">
+        <button onclick="insertBadge('NEW','#34C759')" style="border:none;border-radius:4px;padding:4px 8px;cursor:pointer;background:#34C759;color:#FFF;font-size:calc(11px * var(--font-scale));font-weight:700;">NEW</button>
+        <button onclick="insertBadge('WIP','#1A2B3D')" style="border:none;border-radius:4px;padding:4px 8px;cursor:pointer;background:#1A2B3D;color:#FFF;font-size:calc(11px * var(--font-scale));font-weight:700;">WIP</button>
+        <button onclick="insertBadge('DONE','#007AFF')" style="border:none;border-radius:4px;padding:4px 8px;cursor:pointer;background:#007AFF;color:#FFF;font-size:calc(11px * var(--font-scale));font-weight:700;">DONE</button>
+        <button onclick="insertBadge('CRITICAL','#FF3B30')" style="border:none;border-radius:4px;padding:4px 8px;cursor:pointer;background:#FF3B30;color:#FFF;font-size:calc(11px * var(--font-scale));font-weight:700;">CRITICAL</button>
+        <button onclick="insertBadge('REVIEW','#AF52DE')" style="border:none;border-radius:4px;padding:4px 8px;cursor:pointer;background:#AF52DE;color:#FFF;font-size:calc(11px * var(--font-scale));font-weight:700;">REVIEW</button>
+      </div>
+    </div>
+    <div style="width:1px;height:20px;background:rgba(0,0,0,0.1);margin:0 4px;"></div>
+    
+    <button onclick="duplicateBlock()" title="Duplicate block" style="width:28px;height:28px;border:none;border-radius:6px;background:rgba(0,0,0,0.04);cursor:pointer;color:#374151;display:flex;align-items:center;justify-content:center;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+    </button>
+    <button onclick="deleteBlock()" title="Delete block" style="width:28px;height:28px;border:none;border-radius:6px;background:rgba(255,255,255,0.06);cursor:pointer;color:#FF6B6B;display:flex;align-items:center;justify-content:center;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+    </button>
+    <div style="width:1px;height:20px;background:rgba(0,0,0,0.1);margin:0 4px;"></div>
+    
+    <div style="position:relative;display:inline-block;">
+      <button onclick="togglePanel('border-panel')" title="Border &amp; radius" style="height:28px;border:none;border-radius:6px;background:rgba(0,0,0,0.04);cursor:pointer;color:#374151;padding:0 8px;font-size:calc(11px * var(--font-scale));font-weight:600;display:flex;align-items:center;gap:4px;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="4"/></svg>Border
+      </button>
+      <div id="border-panel" style="display:none;position:absolute;top:32px;right:0;background:#FFFFFF;border-radius:8px;padding:12px;box-shadow:0 8px 24px rgba(0,0,0,0.12);z-index:10001;flex-direction:column;gap:8px;min-width:180px;">
+        <label style="color:#CDD6F4;font-size:calc(11px * var(--font-scale));display:flex;align-items:center;gap:8px;">Border <input type="range" min="0" max="4" value="0" oninput="adjustBorder('width',this.value);this.nextElementSibling.textContent=this.value+'px'" style="flex:1;accent-color:#89B4FA;"><span style="color:#6C7086;font-size:calc(11px * var(--font-scale));min-width:24px;">0px</span></label>
+        <label style="color:#CDD6F4;font-size:calc(11px * var(--font-scale));display:flex;align-items:center;gap:8px;">Radius <input type="range" min="0" max="20" value="0" oninput="adjustBorder('radius',this.value);this.nextElementSibling.textContent=this.value+'px'" style="flex:1;accent-color:#89B4FA;"><span style="color:#6C7086;font-size:calc(11px * var(--font-scale));min-width:24px;">0px</span></label>
+        <div style="display:flex;gap:4px;margin-top:4px;">
+          <button onclick="adjustBorder('color','#1A2B3D')" style="width:20px;height:20px;border-radius:50%;border:none;background:#1A2B3D;cursor:pointer;"></button>
+          <button onclick="adjustBorder('color','#007AFF')" style="width:20px;height:20px;border-radius:50%;border:none;background:#007AFF;cursor:pointer;"></button>
+          <button onclick="adjustBorder('color','#D1D5DB')" style="width:20px;height:20px;border-radius:50%;border:none;background:#D1D5DB;cursor:pointer;"></button>
+          <button onclick="adjustBorder('color','#FF3B30')" style="width:20px;height:20px;border-radius:50%;border:none;background:#FF3B30;cursor:pointer;"></button>
+        </div>
+      </div>
+    </div>
+    <div style="width:1px;height:20px;background:rgba(0,0,0,0.1);margin:0 4px;"></div>
+    
+    <button onclick="document.execCommand('underline')" title="Underline (Ctrl+U)" style="width:28px;height:28px;border:none;border-radius:6px;background:rgba(0,0,0,0.04);cursor:pointer;color:#374151;font-size:calc(14px * var(--font-scale));text-decoration:underline;font-weight:600;">U</button>
+    <button onclick="document.execCommand('strikethrough')" title="Strikethrough" style="width:28px;height:28px;border:none;border-radius:6px;background:rgba(0,0,0,0.04);cursor:pointer;color:#374151;font-size:calc(14px * var(--font-scale));text-decoration:line-through;font-weight:600;">S</button>
+    <div style="width:1px;height:20px;background:rgba(0,0,0,0.1);margin:0 4px;"></div>
+    
+    <select onchange="applyHeading(this.value);this.selectedIndex=0;" title="Heading level" style="height:28px;border:none;border-radius:6px;background:rgba(255,255,255,0.06);color:#CDD6F4;font-size:calc(12px * var(--font-scale));padding:0 8px;cursor:pointer;outline:none;">
+      <option value="" disabled selected>H</option>
+      <option value="p">Paragraph</option>
+      <option value="h1">H1</option>
+      <option value="h2">H2</option>
+      <option value="h3">H3</option>
+      <option value="h4">H4</option>
+    </select>
+    <div style="width:1px;height:20px;background:rgba(0,0,0,0.1);margin:0 4px;"></div>
+    
+    <button onclick="insertLink()" title="Insert link (Ctrl+K)" style="width:28px;height:28px;border:none;border-radius:6px;background:rgba(0,0,0,0.04);cursor:pointer;color:#374151;display:flex;align-items:center;justify-content:center;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+    </button>
+    
+    <button onclick="document.execCommand('insertUnorderedList')" title="Bullet list" style="width:28px;height:28px;border:none;border-radius:6px;background:rgba(0,0,0,0.04);cursor:pointer;color:#374151;display:flex;align-items:center;justify-content:center;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1.5" fill="currentColor"/><circle cx="4" cy="12" r="1.5" fill="currentColor"/><circle cx="4" cy="18" r="1.5" fill="currentColor"/></svg>
+    </button>
+    <button onclick="document.execCommand('insertOrderedList')" title="Numbered list" style="width:28px;height:28px;border:none;border-radius:6px;background:rgba(0,0,0,0.04);cursor:pointer;color:#374151;display:flex;align-items:center;justify-content:center;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="10" y1="6" x2="20" y2="6"/><line x1="10" y1="12" x2="20" y2="12"/><line x1="10" y1="18" x2="20" y2="18"/><text x="2" y="8" font-size="7" fill="currentColor" stroke="none" font-weight="700">1</text><text x="2" y="14" font-size="7" fill="currentColor" stroke="none" font-weight="700">2</text><text x="2" y="20" font-size="7" fill="currentColor" stroke="none" font-weight="700">3</text></svg>
+    </button>
+    
+    <button onclick="document.execCommand('insertHTML',false,'<hr style=&quot;border:none;border-top:2px solid #E5E7EB;margin:16px 0;&quot;>')" title="Insert divider" style="width:28px;height:28px;border:none;border-radius:6px;background:rgba(0,0,0,0.04);cursor:pointer;color:#374151;display:flex;align-items:center;justify-content:center;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M3 12h18"/></svg>
+    </button>
+    
+    <button onclick="cycleTextTransform()" title="Text transform (UPPER / lower / Capitalize)" style="width:28px;height:28px;border:none;border-radius:6px;background:rgba(0,0,0,0.04);cursor:pointer;color:#374151;font-size:calc(12px * var(--font-scale));font-weight:700;">Aa</button>
+  </div>
+</div>
+<div id="ui-editor-modal" style="display:none;position:fixed;inset:0;z-index:10001;
+  background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+  font-family:Verdana,sans-serif;">
+  <div style="position:absolute;inset:16px;background:#1E1E2E;border-radius:12px;
+    display:flex;flex-direction:column;overflow:hidden;box-shadow:0 25px 50px rgba(0,0,0,0.4);">
+    <div style="display:flex;align-items:center;justify-content:space-between;
+      padding:12px 16px;background:#181825;border-bottom:1px solid rgba(255,255,255,0.08);">
+      <div style="display:flex;gap:2px;">
+        <button onclick="switchEditorTab('content')" id="tab-content"
+          style="padding:6px 14px;border-radius:6px;border:none;font-size:calc(13px * var(--font-scale));font-weight:600;
+          cursor:pointer;background:rgba(255,255,255,0.1);color:#CDD6F4;">Content</button>
+        <button onclick="switchEditorTab('styles')" id="tab-styles"
+          style="padding:6px 14px;border-radius:6px;border:none;font-size:calc(13px * var(--font-scale));font-weight:600;
+          cursor:pointer;background:transparent;color:#6C7086;">Styles</button>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="saveSource()" style="padding:6px 14px;border-radius:6px;border:none;
+          font-size:calc(13px * var(--font-scale));font-weight:600;cursor:pointer;background:#A6E3A1;color:#1E1E2E;">Apply</button>
+        <button onclick="closeSourceEditor()" style="padding:6px 14px;border-radius:6px;border:none;
+          font-size:calc(13px * var(--font-scale));font-weight:600;cursor:pointer;background:rgba(255,255,255,0.06);
+          color:#CDD6F4;">Back</button>
+      </div>
+    </div>
+    <div style="flex:1;position:relative;overflow:hidden;">
+      <textarea id="editor-area" spellcheck="false" style="width:100%;height:100%;
+        resize:none;border:none;outline:none;padding:16px 16px 16px 56px;
+        font-family:'SF Mono',SFMono-Regular,Menlo,Consolas,monospace;font-size:calc(13px * var(--font-scale));
+        line-height:1.6;background:#1E1E2E;color:#CDD6F4;tab-size:2;
+        white-space:pre;overflow:auto;box-sizing:border-box;"></textarea>
+      <div id="editor-lines" style="position:absolute;top:0;left:0;width:44px;height:100%;
+        padding:16px 8px 16px 0;text-align:right;font-family:'SF Mono',SFMono-Regular,Menlo,
+        Consolas,monospace;font-size:calc(13px * var(--font-scale));line-height:1.6;color:#45475A;
+        pointer-events:none;overflow:hidden;background:#181825;
+        border-right:1px solid rgba(255,255,255,0.05);user-select:none;"></div>
+    </div>
+  </div>
+</div>
+
+
+<div id="ui-toolbar" style="position:fixed;bottom:16px;right:16px;z-index:9999;
+  display:flex;align-items:center;gap:2px;background:rgba(0,0,0,0.06);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);padding:4px 6px;
+  border-radius:100px;font-family:Verdana,sans-serif;user-select:none;
+  cursor:grab;touch-action:none;transition:bottom 0.3s cubic-bezier(0.25,0.46,0.45,0.94),
+  top 0.3s cubic-bezier(0.25,0.46,0.45,0.94),left 0.3s cubic-bezier(0.25,0.46,0.45,0.94),
+  right 0.3s cubic-bezier(0.25,0.46,0.45,0.94);">
+  <button onclick="adjSize(-0.1)" style="width:30px;height:30px;border:none;border-radius:50%;background:transparent;cursor:pointer;color:inherit;display:flex;align-items:center;justify-content:center;" title="Smaller text">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14"/></svg>
+  </button>
+  <span id="size-label" style="font-size:calc(11px * var(--font-scale));font-weight:600;min-width:32px;text-align:center;opacity:0.5;pointer-events:none;">100%</span>
+  <button onclick="adjSize(0.1)" style="width:30px;height:30px;border:none;border-radius:50%;background:transparent;cursor:pointer;color:inherit;display:flex;align-items:center;justify-content:center;" title="Larger text">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+  </button>
+  <div style="width:1px;height:16px;background:currentColor;opacity:0.15;margin:0 2px;"></div>
+  <button style="width:44px;height:44px;border:none;border-radius:50%;background:transparent;color:inherit;cursor:pointer" type="button" onclick="toggleDark()" title="Toggle dark mode" aria-label="Toggle dark mode"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"><path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"/></svg></button><button style="width:44px;height:44px;border:none;border-radius:50%;background:transparent;color:inherit;cursor:pointer" type="button" onclick="setPreview('mobile')" title="Mobile preview" aria-label="Mobile preview"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M10 18h4"/></svg></button><button style="width:44px;height:44px;border:none;border-radius:50%;background:transparent;color:inherit;cursor:pointer" type="button" onclick="setPreview('desktop')" title="Full width" aria-label="Full width"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"><rect x="2" y="3" width="20" height="14"/><path d="M8 21h8M12 17v4"/></svg></button><button onclick="openEditor()" id="edit-btn" style="width:30px;height:30px;border:none;border-radius:50%;background:transparent;cursor:pointer;color:inherit;display:flex;align-items:center;justify-content:center;" title="Edit page (Ctrl+E)">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+  </button>
+  <div style="width:1px;height:16px;background:currentColor;opacity:0.15;margin:0 2px;"></div>
+  <div style="padding:0 4px;cursor:grab;opacity:0.3;display:flex;align-items:center;" title="Drag to reposition">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="6" r="2"/><circle cx="14" cy="6" r="2"/><circle cx="6" cy="14" r="2"/><circle cx="14" cy="14" r="2"/><circle cx="6" cy="22" r="2"/><circle cx="14" cy="22" r="2"/></svg>
+  </div>
+</div>
+
+<script>
+let fs = 1; try { fs = parseFloat(localStorage.getItem('ui-font-scale') || '1'); } catch (e) {}
+if (!Number.isFinite(fs)) fs = 1; fs = Math.max(0.5, Math.min(2.5, fs));
+document.documentElement.style.setProperty('--font-scale', fs);
+document.getElementById('size-label').textContent = Math.round(fs * 100) + '%';
+
+function adjSize(d) {
+  fs = Math.max(0.5, Math.min(2.5, +(fs + d).toFixed(1)));
+  document.documentElement.style.setProperty('--font-scale', fs);
+  document.getElementById('size-label').textContent = Math.round(fs * 100) + '%';
+  try { localStorage.setItem('ui-font-scale', fs); } catch (e) {}
+}
+(function() {
+  const el = document.getElementById('ui-toolbar');
+  let dragging = false, startX, startY, elX, elY;
+  const M = 16;
+  let saved = null; try { saved = JSON.parse(localStorage.getItem('ui-toolbar-pos') || 'null'); } catch (e) {}
+  if (saved) applyPos(saved);
+  function applyPos(p) {
+    el.style.transition = 'none';
+    el.style.top = p.top != null ? p.top + 'px' : 'auto';
+    el.style.bottom = p.bottom != null ? p.bottom + 'px' : 'auto';
+    el.style.left = p.left != null ? p.left + 'px' : 'auto';
+    el.style.right = p.right != null ? p.right + 'px' : 'auto';
+    void el.offsetHeight;
+    el.style.transition = '';
+  }
+  function snapToCorner() {
+    const r = el.getBoundingClientRect();
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    const pos = {};
+    if (cy < innerHeight / 2) { pos.top = M; pos.bottom = null; } else { pos.bottom = M; pos.top = null; }
+    if (cx < innerWidth / 2) { pos.left = M; pos.right = null; } else { pos.right = M; pos.left = null; }
+    el.style.transition = 'all 0.3s cubic-bezier(0.25,0.46,0.45,0.94)';
+    applyPos(pos);
+    try { localStorage.setItem('ui-toolbar-pos', JSON.stringify(pos)); } catch (e) {}
+  }
+  el.addEventListener('pointerdown', function(e) {
+    if (e.target.closest('button')) return;
+    dragging = true; el.style.cursor = 'grabbing'; el.style.transition = 'none';
+    const r = el.getBoundingClientRect();
+    startX = e.clientX; startY = e.clientY; elX = r.left; elY = r.top;
+    el.setPointerCapture(e.pointerId);
+  });
+  window.addEventListener('pointermove', function(e) {
+    if (!dragging) return;
+    el.style.top = (elY + e.clientY - startY) + 'px'; el.style.bottom = 'auto';
+    el.style.left = (elX + e.clientX - startX) + 'px'; el.style.right = 'auto';
+  });
+  window.addEventListener('pointerup', function() { if (!dragging) return; dragging = false; el.style.cursor = 'grab'; snapToCorner(); });
+})();
+let isEditing = false, editSnapshot = '', lastFocusedBlock = null;
+
+function openEditor() {
+  if (isEditing) { cancelEdits(); return; }
+  isEditing = true;
+  const content = document.getElementById('ui-content');
+  editSnapshot = content.innerHTML;
+  content.contentEditable = 'true';
+  content.style.outline = '2px dashed rgba(166,227,161,0.3)';
+  content.style.outlineOffset = '-2px';
+  document.getElementById('ui-edit-bar').style.display = 'flex';
+  document.getElementById('edit-btn').style.background = 'rgba(166,227,161,0.2)';
+  content.addEventListener('click', trackFocusedBlock);
+  content.querySelectorAll('.slide').forEach(s => { s.style.pointerEvents = 'all'; });
+}
+
+function trackFocusedBlock(e) {
+  lastFocusedBlock = e.target.closest('div,section,article,li,tr,p,h1,h2,h3,h4,h5,h6');
+}
+
+function saveEdits() {
+  const content = document.getElementById('ui-content');
+  content.contentEditable = 'false';
+  content.style.outline = ''; content.style.outlineOffset = '';
+  content.removeEventListener('click', trackFocusedBlock);
+  document.getElementById('ui-edit-bar').style.display = 'none';
+  document.getElementById('edit-btn').style.background = 'transparent';
+  editSnapshot = ''; isEditing = false;
+  document.getElementById('report-edit-status').textContent = 'Edited report: re-run the CSV to restore computed output.';
+}
+
+function cancelEdits() {
+  const content = document.getElementById('ui-content');
+  content.innerHTML = editSnapshot;
+  content.contentEditable = 'false';
+  content.style.outline = ''; content.style.outlineOffset = '';
+  content.removeEventListener('click', trackFocusedBlock);
+  document.getElementById('ui-edit-bar').style.display = 'none';
+  document.getElementById('edit-btn').style.background = 'transparent';
+  isEditing = false;
+}
+
+function downloadEdits() {
+  const content = document.getElementById('ui-content');
+  const styleEl = document.querySelector('head style');
+  const html = '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width,initial-scale=1">\n<title>' + document.title + '</title>\n<style>\n' + (styleEl ? styleEl.textContent : '') + '\n</style>\n</head>\n<body>\n<p>Edited copy. This page is not the original computed report.</p>\n' + content.innerHTML + '\n</body>\n</html>';
+  const blob = new Blob([html], {type: 'text/html'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url;
+  a.download = (document.title || 'page').replace(/[^a-z0-9-]/gi, '-').toLowerCase() + '.html';
+  a.click(); URL.revokeObjectURL(url);
+}
+function togglePanel(id) {
+  const panel = document.getElementById(id);
+  const visible = panel.style.display !== 'none';
+  document.querySelectorAll('[id$="-panel"]').forEach(p => p.style.display = 'none');
+  if (!visible) panel.style.display = (id === 'badge-panel' || id === 'border-panel') ? 'flex' : 'grid';
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('[id$="-panel"]') && !e.target.closest('[onclick*="togglePanel"]'))
+    document.querySelectorAll('[id$="-panel"]').forEach(p => p.style.display = 'none');
+});
+
+function applyColor(hex) { document.execCommand('foreColor', false, hex); togglePanel('text-color-panel'); }
+function applyBgColor(hex) { document.execCommand('hiliteColor', false, hex); togglePanel('bg-color-panel'); }
+function applyFont(family) { document.execCommand('fontName', false, family); }
+function applyHeading(tag) { document.execCommand('formatBlock', false, '<' + tag + '>'); }
+
+function insertLink() {
+  const url = prompt('Enter URL:');
+  if (url) document.execCommand('createLink', false, url);
+}
+
+function cycleTextTransform() {
+  const sel = window.getSelection();
+  if (!sel.rangeCount || sel.isCollapsed) return;
+  const text = sel.toString();
+  let transformed;
+  if (text === text.toLowerCase()) transformed = text.toUpperCase();
+  else if (text === text.toUpperCase()) transformed = text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+  else transformed = text.toLowerCase();
+  document.execCommand('insertText', false, transformed);
+}
+
+function changeFontSize(delta) {
+  const sel = window.getSelection();
+  if (!sel.rangeCount || sel.isCollapsed) return;
+  try {
+    const range = sel.getRangeAt(0);
+    const span = document.createElement('span');
+    const parent = sel.anchorNode.parentElement;
+    const current = parseFloat(getComputedStyle(parent).fontSize) || 16;
+    span.style.fontSize = Math.max(8, Math.min(120, current + delta)) + 'px';
+    range.surroundContents(span);
+  } catch(e) {
+    const size = delta > 0 ? '5' : '2';
+    document.execCommand('fontSize', false, size);
+  }
+}
+
+function insertBadge(text, color) {
+  const html = '<span style="display:inline-block;font-size:calc(14px * var(--font-scale));font-weight:700;text-transform:uppercase;letter-spacing:0.08em;padding:2px 8px;border-radius:100px;background:' + color + ';color:#FFFFFF;">' + text + '</span>&nbsp;';
+  document.execCommand('insertHTML', false, html);
+  togglePanel('badge-panel');
+}
+
+function duplicateBlock() {
+  const block = lastFocusedBlock || document.getSelection()?.anchorNode?.parentElement;
+  if (block && block.closest('#ui-content')) {
+    const clone = block.cloneNode(true);
+    block.parentNode.insertBefore(clone, block.nextSibling);
+  }
+}
+
+let deletedBlock = null;
+function deleteBlock() {
+  const block = lastFocusedBlock || document.getSelection()?.anchorNode?.parentElement;
+  if (block && block.closest('#ui-content') && block !== document.getElementById('ui-content')) {
+    deletedBlock = { el: block.cloneNode(true), parent: block.parentNode, next: block.nextSibling };
+    block.remove();
+  }
+}
+
+let borderTarget = null;
+document.getElementById('ui-content')?.addEventListener('click', function(e) {
+  if (isEditing) borderTarget = e.target.closest('div,section,article,span,p,h1,h2,h3,h4,h5,h6,table,li');
+});
+function adjustBorder(prop, value) {
+  const el = borderTarget || lastFocusedBlock;
+  if (!el) return;
+  if (prop === 'width') el.style.border = value + 'px solid ' + (el.style.borderColor || '#D1D5DB');
+  if (prop === 'radius') el.style.borderRadius = value + 'px';
+  if (prop === 'color') el.style.borderColor = value;
+}
+let editorTab = 'content', editorContentCache = '', editorStylesCache = '';
+
+function openSourceEditor() {
+  const content = document.getElementById('ui-content');
+  const styleEl = document.querySelector('head style');
+  editorContentCache = content.innerHTML;
+  editorStylesCache = styleEl ? styleEl.textContent : '';
+  editorTab = 'content';
+  document.getElementById('editor-area').value = editorContentCache;
+  updateEditorTabs(); updateLineNumbers();
+  document.getElementById('ui-editor-modal').style.display = 'block';
+}
+function closeSourceEditor() { document.getElementById('ui-editor-modal').style.display = 'none'; }
+function switchEditorTab(tab) {
+  const area = document.getElementById('editor-area');
+  if (editorTab === 'content') editorContentCache = area.value; else editorStylesCache = area.value;
+  editorTab = tab; area.value = tab === 'content' ? editorContentCache : editorStylesCache;
+  updateEditorTabs(); updateLineNumbers();
+}
+function updateEditorTabs() {
+  document.getElementById('tab-content').style.background = editorTab === 'content' ? 'rgba(255,255,255,0.1)' : 'transparent';
+  document.getElementById('tab-content').style.color = editorTab === 'content' ? '#CDD6F4' : '#6C7086';
+  document.getElementById('tab-styles').style.background = editorTab === 'styles' ? 'rgba(255,255,255,0.1)' : 'transparent';
+  document.getElementById('tab-styles').style.color = editorTab === 'styles' ? '#CDD6F4' : '#6C7086';
+}
+function updateLineNumbers() {
+  const area = document.getElementById('editor-area');
+  document.getElementById('editor-lines').innerHTML = Array.from({length: area.value.split('\n').length}, (_, i) => i + 1).join('<br>');
+}
+function saveSource() {
+  const area = document.getElementById('editor-area');
+  if (editorTab === 'content') editorContentCache = area.value; else editorStylesCache = area.value;
+  document.getElementById('ui-content').innerHTML = editorContentCache;
+  const styleEl = document.querySelector('head style');
+  if (styleEl) styleEl.textContent = editorStylesCache;
+  closeSourceEditor();
+}
+document.getElementById('editor-area').addEventListener('keydown', function(e) {
+  if (e.key === 'Tab') { e.preventDefault(); const s = this.selectionStart; this.value = this.value.substring(0, s) + '  ' + this.value.substring(this.selectionEnd); this.selectionStart = this.selectionEnd = s + 2; updateLineNumbers(); }
+});
+document.getElementById('editor-area').addEventListener('input', updateLineNumbers);
+document.getElementById('editor-area').addEventListener('scroll', function() { document.getElementById('editor-lines').scrollTop = this.scrollTop; });
+let darkMode = false;
+function toggleDark() {
+ darkMode = !darkMode; document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+}
+function setPreview(mode) {
+ const sizes = {mobile:'375px',tablet:'768px',desktop:'1100px'};
+ document.getElementById('ui-content').style.maxWidth = sizes[mode];
+}
+document.addEventListener('keydown', function(e) {
+ if ((e.ctrlKey || e.metaKey) && e.key === 'e') {e.preventDefault();openEditor();}
+ if ((e.ctrlKey || e.metaKey) && e.key === '0') {e.preventDefault();fs=1;adjSize(0);}
+ if (e.key === 'Escape') {if (isEditing) cancelEdits();closeSourceEditor();setPreview('desktop');}
+});
+</script>

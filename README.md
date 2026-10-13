@@ -22,6 +22,16 @@ python -m anomalynerd.cli examples/draft_lottery_1970.csv --metric mean_draft_ra
 python -m anomalynerd.cli results.csv --json          # machine-readable output
 ```
 
+### Local review page
+
+Write a self-contained report with priority counts, filterable findings, computed evidence and an optional caption:
+
+```bash
+python -m anomalynerd.cli examples/halley_ozone_october.csv --metric ozone_DU --lower-better --caption --html report.html
+```
+
+Open `report.html` in a browser. The report uses no remote assets or model calls; table content is escaped before rendering. It keeps the detector output unchanged. It supports narrow screens and printing.
+
 ### Generate a caption for a table
 
 Because detecting anomalies means detecting patterns, AnomalyNerd can also describe a table in
@@ -131,3 +141,5 @@ DESIGN.md           full design doc (detectors, edge cases, validation, roadmap)
 - Telling a genuine regime-shift from an accelerating trend is hard; such cases are reported
   as **low-confidence candidates**, not certainties.
 - Input is CSV today; LaTeX-table and Excel readers are planned.
+
+The HTML report stays on your machine. Editing changes the displayed copy, not the CSV or detector output. Saved edits show an edited-report notice; downloaded edited copies carry the same warning. Re-run the CSV to restore the computed report.
