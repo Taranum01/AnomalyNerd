@@ -8,7 +8,10 @@ FIELDS={'before','after','printed_percent','decimals','base','formula_source','c
 def load_checks(path):
     if Path(path).stat().st_size > 1_000_000:
         raise ValueError('derived schema exceeds 1MB')
-    data=json.loads(Path(path).read_text())
+    try:
+        data=json.loads(Path(path).read_text())
+    except RecursionError as exc:
+        raise ValueError('derived schema nesting exceeds decoder limit') from exc
     if not isinstance(data,list) or len(data)>100:
         raise ValueError('derived schema must be a list of at most 100 checks')
     results=[]

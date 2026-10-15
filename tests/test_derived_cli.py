@@ -32,3 +32,10 @@ class DerivedCLI(unittest.TestCase):
  def test_limit(self):
   self.schema.write_text(json.dumps([{}]*101))
   with self.assertRaises(ValueError):load_checks(self.schema)
+
+ def test_nested_json_no_traceback(self):
+  self.schema.write_text('[' * 1500 + '0' + ']' * 1500)
+  code,out,err=self.run_cli('--verbose-derived','--derived-schema',str(self.schema))
+  self.assertEqual(code,2);self.assertEqual(out,'')
+  self.assertIn('Error: cannot read derived schema:',err)
+  self.assertNotIn('Traceback',err)
