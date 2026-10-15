@@ -27,6 +27,7 @@ class PdfAnalysis:
     stat_findings: list = field(default_factory=list) # list[StatFinding]
     could_not_check: list = field(default_factory=list)
     non_table_count: int = 0           # clear metadata/prose blocks omitted from that list
+    detector_runs: dict = field(default_factory=dict)
     source_kind: str = "pdf"           # "pdf" | "latex"
 
 
@@ -35,7 +36,7 @@ def analyze_pdf(path: str, expect_flat=None) -> PdfAnalysis:
     return _analyze_parse(path, parse, expect_flat, source_kind="pdf")
 
 
-def analyze_source(path: str, expect_flat=None) -> PdfAnalysis:
+def analyze_source(path: str, expect_flat=None, detector_seconds=4.0, checkpoint_dir=None) -> PdfAnalysis:
     """Analyze a PDF or a LaTeX source file, dispatching on extension. LaTeX source gives
     far cleaner table extraction than a compiled PDF, so prefer it when available."""
     low = path.lower()
@@ -45,11 +46,12 @@ def analyze_source(path: str, expect_flat=None) -> PdfAnalysis:
         # LatexParse has no n_pages; give the shared report a sensible attribute
         if not hasattr(parse, "n_pages"):
             parse.n_pages = 0
-        return _analyze_parse(path, parse, expect_flat, source_kind="latex")
-    return analyze_pdf(path, expect_flat=expect_flat)
+        return _analyze_parse(path, parse, expect_flat, source_kind="latex", detector_seconds=detector_seconds, checkpoint_dir=checkpoint_dir)
+    parse = parse_pdf(path)
+    return _analyze_parse(path, parse, expect_flat, source_kind="pdf", detector_seconds=detector_seconds, checkpoint_dir=checkpoint_dir)
 
 
-def _analyze_parse(path, parse, expect_flat, source_kind="pdf") -> PdfAnalysis:
+def _analyze_parse(path, parse, expect_flat, source_kind="pdf", detector_seconds=4.0, checkpoint_dir=None) -> PdfAnalysis:
     res = PdfAnalysis(path=path, parse=parse)
     res.source_kind = source_kind
 
@@ -64,21 +66,21 @@ def _analyze_parse(path, parse, expect_flat, source_kind="pdf") -> PdfAnalysis:
         if t.status in ("ok", "partial") and tidies:
             for mi, tidy in enumerate(tidies):
                 key = (page, t.index_on_page, mi)
-                if is_pathological(tidy):
-                    res.table_flags[key] = []
-                    res.could_not_check.append(
-                        f"{where} metric '{tidy.metric_name}': too many axes or level "
-                        f"combinations (likely a mis-parsed table); not analyzed")
-                    continue
                 try:
-                    flags = analyze(tidy, expect_flat=expect_flat)
+                    from .bounded import run_bounded
+                    flags, runs = run_bounded(tidy, seconds=detector_seconds, checkpoint_dir=checkpoint_dir, expect_flat=expect_flat)
+                    res.detector_runs[key] = runs
+                    for run in runs:
+                        if run["status"] != "completed":
+                            res.could_not_check.append(f"{where} metric {tidy.metric_name}: {run['detector']} {run['status']} ({run.get('reason','')}); limit {detector_seconds}s")
                 except Exception as e:
                     flags = []
                     res.could_not_check.append(
                         f"{where} metric '{tidy.metric_name}': detectors failed "
                         f"({type(e).__name__}); not analyzed")
                 res.table_flags[key] = flags
-                res.stat_findings += digit_tests(tidy)
+                if not is_pathological(tidy):
+                    res.stat_findings += digit_tests(tidy)
         elif t.status == "non_table":
             # metadata/cover-sheet/prose block mis-detected as a table: not a results table,
             # so drop it silently (counted below) rather than cluttering "could not check".
@@ -86,7 +88,7 @@ def _analyze_parse(path, parse, expect_flat, source_kind="pdf") -> PdfAnalysis:
         else:
             res.could_not_check.append(f"{where} ({t.n_rows}x{t.n_cols}): {t.reason}")
 
-    # 3: statcheck + GRIM on the document's reported statistics
+    # 3: statcheck + GRIM on extracted supported strings only, never entire manuscript validation
     res.stat_findings += statcheck(parse.stat_strings)
     res.stat_findings += grim(parse.stat_strings)
     res.stat_findings += grimmer(parse.stat_strings)
@@ -113,8 +115,15 @@ def format_report(res: PdfAnalysis) -> str:
                  f"Reported statistics found: {len(p.stat_strings)}")
     else:
         L.append(f"Pages: {p.n_pages}   Tables detected: {len(p.tables)}   "
-                 f"Tables analyzed: {len(usable)}   "
+                 f"Tables extraction-usable: {len(usable)}   "
                  f"Reported statistics found: {len(p.stat_strings)}")
+    counts = {}
+    for runs in res.detector_runs.values():
+        for run in runs: counts[run['status']] = counts.get(run['status'],0)+1
+    L.append("Detector coverage: " + ", ".join(f"{k}={v}" for k,v in sorted(counts.items())))
+    L.append("Extraction coverage: " + ", ".join(f"{status}={sum(t.status == status for t in p.tables)}" for status in ('ok','partial','skipped','non_table')))
+    L.append("Raw flags are review suggestions, not research errors. Repeated baselines may be intentional.")
+    if getattr(p, 'included_files', None): L.append("Included source files: " + ", ".join(p.included_files))
     L.append("")
 
     # ---- findings: pattern anomalies ----
@@ -135,7 +144,7 @@ def format_report(res: PdfAnalysis) -> str:
                 hdr += "  [caveats: " + "; ".join(t.caveats) + "]"
             L.append(hdr)
             if not flags:
-                L.append("    no scientific-pattern anomalies flagged")
+                L.append("    no raw flags from completed detectors; see coverage for incomplete checks")
             for f in flags:
                 mark = {"HIGH": "!!", "MEDIUM": "! ", "LOW": "  "}[f.priority]
                 L.append(f"  {mark}[{f.priority}] {f.type} along '{f.axis}': {f.suggestion}")
@@ -157,7 +166,7 @@ def format_report(res: PdfAnalysis) -> str:
     L.append("WHAT I COULD NOT CHECK (and why)")
     L.append("-" * 64)
     if not res.could_not_check:
-        L.append("  (nothing — every detected table and applicable test was examined)")
+        L.append("  (no recorded extraction/detector gaps; applicability limits still apply)")
     else:
         for c in res.could_not_check:
             L.append(f"  - {c}")

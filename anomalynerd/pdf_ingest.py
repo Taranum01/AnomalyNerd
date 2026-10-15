@@ -42,6 +42,8 @@ class ExtractedTable:
     tidy: Optional[TidyTable] = None # first metric table (back-compat)
     tidies: list = field(default_factory=list)  # one tidy table per metric
     caveats: list = field(default_factory=list)
+    original_header: list = field(default_factory=list)
+    source_path: str = ""
     backend: str = "pdfplumber"  # which extractor produced this table
 
 
@@ -146,8 +148,7 @@ def _looks_like_shredded_caption(row) -> bool:
         or bool(re.match(r"(?i)^(table|figure)\s*\d", first))
     if not caption_marker:
         return False
-    tiny = sum(1 for c in nonempty if len(c) <= 3)
-    return tiny / len(nonempty) >= 0.25
+    return caption_marker
 
 def _assess_and_tidy(tbl, page, idx) -> ExtractedTable:
     """Turn a raw pdfplumber table into an ExtractedTable with an honest status."""
@@ -184,17 +185,20 @@ def _assess_and_tidy(tbl, page, idx) -> ExtractedTable:
 
     # split header vs body
     header = norm[0]
+    et.original_header = list(header)
     body = norm[1:]
-    # if the first row isn't label-like, synthesize column names
-    if not _looks_like_header(header):
-        header = [f"col{i}" for i in range(width)]
-        body = norm
-    # A caption that got pulled into the grid shreds into fragments (e.g.
-    # "able 6 Co" | "mp" | "a" | "rison results for" ...). Such a row is neither a real
-    # header nor data: synthesize column names and leave it out of schema inference.
-    elif _looks_like_shredded_caption(header):
-        header = [f"col{i}" for i in range(width)]
-        body = norm[1:]
+    # Numeric metric words split across boundaries are evidence of a shredded grid.
+    fragmented_metric = any(re.match(r"(?i)^(?:[a-z]\s*)?\((?:ms|s|%|kg|g)\)", c.strip()) for c in header)
+    if fragmented_metric:
+        et.header = list(header); et.rows = body
+        et.reason = "extraction failure: metric header split across columns; coordinates unverified"
+        return et
+    # Never run numerical detectors on unidentified or caption-shredded coordinates.
+    if not _looks_like_header(header) or _looks_like_shredded_caption(header):
+        et.header = list(header)
+        et.rows = body
+        et.reason = "extraction failure: unidentified or shredded original header; coordinates unverified"
+        return et
     # de-duplicate / fill blank header names
     seen = {}
     clean_header = []
@@ -339,18 +343,17 @@ def parse_pdf(path: str) -> PdfParse:
             usable, skipped, seen_sig = [], [], set()
             for et in page_tables:
                 if et.status in ("ok", "partial") and et.tidy is not None:
-                    sig = (et.n_rows, et.n_cols, et.tidy.metric_name)
+                    sig = (tuple(et.header), tuple(tuple(r) for r in et.rows))
                     if sig in seen_sig:
                         continue
                     seen_sig.add(sig); usable.append(et)
                 else:
                     skipped.append(et)
-            # if any usable table was found on this page, only report those (the skipped
-            # entries are near-duplicates/noise from the other strategy); otherwise report the
-            # skipped ones so the honesty section still explains what was attempted.
-            kept = usable if usable else _dedupe_skipped(skipped)
+            # Keep skipped extraction attempts visible alongside usable alternatives.
+            kept = usable + _dedupe_skipped(skipped)
             for idx, et in enumerate(kept):
                 et.index_on_page = idx
+                et.source_path = path
                 tables.append(et)
 
     # Fallback: if pdfplumber found no usable results table, try Docling, a layout-model
@@ -363,8 +366,8 @@ def parse_pdf(path: str) -> PdfParse:
         if docling_note:
             notes.append(docling_note)
         if docling_tables:
-            # Docling tables replace the pdfplumber 'skipped' noise for a cleaner report.
-            tables = [t for t in tables if t.status in ("ok", "partial")] + docling_tables
+            # A fallback does not erase earlier extraction gaps.
+            tables = tables + docling_tables
 
     if not tables:
         notes.append("no tables were detected in this PDF; if the paper has tables, "

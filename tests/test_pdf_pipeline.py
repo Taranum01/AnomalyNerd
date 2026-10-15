@@ -271,7 +271,7 @@ def test_short_code_headers_are_not_shredded_captions():
 
 
 def test_caption_marked_shrapnel_is_not_used_as_headers():
-    """A shredded Table caption gets synthetic column names instead of junk metric names."""
+    """A shredded caption is an extraction failure, not invented numerical coordinates."""
     from anomalynerd.pdf_ingest import _assess_and_tidy, _looks_like_shredded_caption
     caption = ["able 6 Co", "mp", "a", "rison results for", "methods"]
     assert _looks_like_shredded_caption(caption) is True
@@ -280,6 +280,7 @@ def test_caption_marked_shrapnel_is_not_used_as_headers():
             ["0.70", "0.66", "0.72", "0.68", "0.69"],
             ["0.69", "0.71", "0.64", "0.62", "0.65"]]
     et = _assess_and_tidy(rows, page=1, idx=1)
-    assert et.header == [f"col{i}" for i in range(5)]
-    assert et.status == "ok", et.reason
-    assert et.tidy is not None
+    assert et.header == caption
+    assert et.status == "skipped", et.reason
+    assert et.tidy is None
+    assert "extraction failure" in et.reason

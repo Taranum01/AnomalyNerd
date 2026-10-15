@@ -131,3 +131,27 @@ DESIGN.md           full design doc (detectors, edge cases, validation, roadmap)
 - Telling a genuine regime-shift from an accelerating trend is hard; such cases are reported
   as **low-confidence candidates**, not certainties.
 - Input is CSV today; LaTeX-table and Excel readers are planned.
+
+### Bounded article review (local)
+
+`python -m anomalynerd.pdf_cli article.pdf --detector-seconds 4 --checkpoint-dir .anomaly-checkpoints --json`
+
+Each of the eight pattern detectors runs in a separate process with a hard time limit.
+Completed detector results are resumed by table content, detector source, configuration and
+limit. Failed and timed-out checks remain incomplete and are retried, never reported as passes.
+PDF extraction and statistical/digit checks are not governed by this detector limit; use an
+outer process limit when necessary. The JSON records raw headers/cells and source page/path.
+LaTeX includes are expanded only inside the main file's directory, with cycle, depth and byte
+limits. Expanded source-line numbers are not original per-file line numbers. Missing includes
+remain coverage gaps. Complex macros and unsupported structural grids can still be skipped.
+
+Coverage describes detected extraction regions, not the number of true tables in a manuscript.
+Text-alignment extraction can return prose regions or alternative views of the same table.
+Skipped regions remain visible even when another region on that page is usable. Original
+headers are preserved; unidentified, caption-like and split-metric headers are extraction
+failures rather than invented coordinates. An optional layout fallback is not silently installed.
+
+Raw flags are review suggestions. Repeated baselines and runtime variation across different
+datasets may be intentional. Transcribing a printed value correctly does not establish a
+research error. `not_applicable` for statcheck, GRIM or GRIMMER means supported inputs were not
+extracted, not that all manuscript statistics were validated. No clean-pass claim is supported.

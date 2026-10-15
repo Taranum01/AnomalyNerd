@@ -14,11 +14,61 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Optional
 import csv, os, re, tempfile
+from pathlib import Path
 
 from .ingest import read_csv, read_tables, _parse_number
 from .model import MISSING, TidyTable
 from .pdf_ingest import ExtractedTable   # reuse the same status container
 
+
+
+def expand_project(path: str, max_depth=20, max_bytes=5_000_000):
+    """Expand local input/include only; never execute TeX or escape the project root."""
+    root = Path(path).resolve().parent
+    included, issues, segments = [], [], []
+    budget = [0]
+    def visit(file, stack):
+        if not file.is_relative_to(root):
+            issues.append(f"outside project root: {file.name}"); return ""
+        if file in stack:
+            issues.append(f"include cycle: {file.relative_to(root)}"); return ""
+        if len(stack) >= max_depth:
+            issues.append(f"include depth exceeded: {file.relative_to(root)}"); return ""
+        try:
+            text = file.read_text(encoding="utf-8")
+        except (OSError, UnicodeError):
+            issues.append(f"unreadable include: {file.relative_to(root)}"); return ""
+        budget[0] += len(text.encode())
+        if budget[0] > max_bytes:
+            issues.append("expanded project byte limit exceeded"); return ""
+        included.append(str(file.relative_to(root)))
+        text = _strip_comments(text)
+        def sub(m):
+            name = m.group(1) or m.group(2)
+            child = (file.parent / name).resolve()
+            if not child.suffix: child = child.with_suffix(".tex")
+            return visit(child, stack + [file])
+        return re.sub(r"\\(?:input|include)\s*(?:\{([^{}]+)\}|([^\s%{}]+))", sub, text)
+    expanded = visit(Path(path).resolve(), [])
+    return expanded, included, issues
+
+
+def _strip_rules(text):
+    # cmidrule's optional trim (lr) must be removed together with its range.
+    return re.sub(r"\\(?:cmidrule|cline)\s*(?:\[[^\]]*\])?\s*(?:\([^)]*\))?\s*\{[^}]*\}|\\(?:toprule|midrule|bottomrule)\s*(?:\[[^\]]*\])?|\\hline", "", text)
+
+
+def _split_cells(row):
+    cells, current, depth = [], [], 0
+    for i, char in enumerate(row):
+        escaped = i > 0 and row[i-1] == "\\"
+        if char == "{" and not escaped: depth += 1
+        elif char == "}" and not escaped: depth -= 1
+        if char == "&" and not escaped and depth == 0:
+            cells.append("".join(current)); current = []
+        else: current.append(char)
+    cells.append("".join(current))
+    return cells
 
 # ----------------------------------------------------------------- latex cleaning
 _COMMENT = re.compile(r"(?<!\\)%.*")
@@ -45,7 +95,7 @@ def _balanced_braces(s: str, start: int) -> tuple:
 
 
 def _clean_cell(c: str) -> str:
-    s = c
+    s = _strip_rules(c)
     # \multicolumn{n}{align}{content} -> content
     while "\\multicolumn" in s:
         m = re.search(r"\\multicolumn\s*\{[^}]*\}\s*\{[^}]*\}\s*", s)
@@ -105,38 +155,47 @@ def _clean_cell(c: str) -> str:
 
 
 def _parse_tabular(body: str):
-    """Return (header, rows) of cleaned string cells from a tabular body."""
-    # drop the column-spec argument that follows \begin{tabular}{...}
-    b = body
-    # the regex captured group 2 begins right after the environment name; the first {...}
-    # (or [..]{..} for tabularx) is the column spec — remove a leading {...}.
-    b = b.lstrip()
+    """Parse a conservative rectangular grid, preserving multicolumn offsets."""
+    b = body.lstrip()
+    if b.startswith("["):
+        b = b[b.find("]")+1:].lstrip()
     if b.startswith("{"):
-        _, end = _balanced_braces(b, 0)
-        b = b[end + 1:]
-    elif b.startswith("["):   # tabularx width arg then colspec
-        rb = b.find("]")
-        b = b[rb + 1:].lstrip()
+        _, end = _balanced_braces(b, 0); b = b[end+1:].lstrip()
+        # tabularx has both a width argument and a column specification.
         if b.startswith("{"):
-            _, end = _balanced_braces(b, 0)
-            b = b[end + 1:]
-    # split rows on \\ (row break)
-    raw_rows = re.split(r"\\\\", b)
-    rows = []
-    for rr in raw_rows:
-        rr = rr.strip()
-        if not rr:
-            continue
-        # a line that is only a rule command contributes no data row
-        cells = [_clean_cell(c) for c in rr.split("&")]
-        if all(c == "" for c in cells):
-            continue
-        rows.append(cells)
-    if not rows:
-        return [], []
-    width = max(len(r) for r in rows)
-    rows = [r + [""] * (width - len(r)) for r in rows]
-    return rows[0], rows[1:]
+            _, end = _balanced_braces(b, 0); b = b[end+1:]
+    rows, active = [], {}
+    for rr in re.split(r"\\\\(?:\[[^\]]*\])?", _strip_rules(b)):
+        if not rr.strip(): continue
+        values, next_active, col = [], {}, 0
+        for raw in _split_cells(rr):
+            # TeX multirow placeholders are normally explicit empty cells.
+            span = re.search(r"\\multicolumn\s*\{(\d+)\}", raw)
+            n = int(span.group(1)) if span else 1
+            if n < 1 or n > 100: raise ValueError("unsupported column span")
+            multi = re.search(r"\\multirow\s*\{(\d+)\}", raw)
+            value = _clean_cell(raw)
+            if col in active:
+                prior, remain = active[col]
+                if value: raise ValueError("multirow overlap; extraction ambiguous")
+                value = prior
+                if remain > 1: next_active[col] = (prior, remain-1)
+            if multi:
+                height = int(multi.group(1))
+                if height < 1 or height > 100: raise ValueError("unsupported row span")
+                if height > 1: next_active[col] = (value, height-1)
+            values.extend([value] + [""]*(n-1)); col += n
+        active = next_active
+        if any(values): rows.append(values)
+    if not rows: return [], []
+    width = len(rows[0])
+    if any(len(r) != width for r in rows):
+        raise ValueError("ragged structural grid; extraction ambiguous")
+    # Combine leading all-text header rows into original compound labels.
+    header = rows.pop(0)
+    while rows and not any(_parse_number(c) is not MISSING for c in rows[0]):
+        header = [" / ".join(v for v in (a,b) if v) for a,b in zip(header, rows.pop(0))]
+    return header, rows
 
 
 def _numeric_fraction(values) -> float:
@@ -169,15 +228,18 @@ class LatexParse:
     tables: list                 # list[ExtractedTable]
     stat_strings: list
     notes: list = field(default_factory=list)
+    included_files: list = field(default_factory=list)
+    include_issues: list = field(default_factory=list)
 
 
 def parse_latex(path_or_text: str) -> LatexParse:
     # accept a path to a .tex file, or raw tex text
     if os.path.exists(path_or_text) and path_or_text.endswith((".tex", ".txt")):
-        tex = open(path_or_text, encoding="utf-8", errors="ignore").read()
+        tex, included, include_issues = expand_project(path_or_text)
         name = os.path.basename(path_or_text)
     else:
         tex = path_or_text
+        included, include_issues = [], []
         name = "source"
     tex = _strip_comments(tex)
     stat_strings = _extract_stat_strings(tex)
@@ -187,14 +249,34 @@ def parse_latex(path_or_text: str) -> LatexParse:
     idx = 0
     for m in _TABULAR.finditer(tex):
         body = m.group(2)
-        header, rows = _parse_tabular(body)
+        extraction_error = None
+        try:
+            header, rows = _parse_tabular(body)
+        except ValueError as exc:
+            header, rows = [], []
+            extraction_error = str(exc)
         caption = _caption_before(tex, m.start())
         et = ExtractedTable(page=0, index_on_page=idx,
                             n_rows=len(rows), n_cols=len(header) if header else 0,
                             status="skipped")
         idx += 1
+        et.source_text = m.group(0)
+        et.source_path = path_or_text if included else "inline"
+        et.source_locations = []
+        if included:
+            project_root = Path(path_or_text).resolve().parent
+            for relative in sorted(set(included)):
+                original = _strip_comments((project_root / relative).read_text(encoding="utf-8"))
+                for match in re.finditer(re.escape(m.group(0)), original):
+                    et.source_locations.append({"file":relative,"line":original[:match.start()].count("\n")+1})
+        et.source_location_status = "exact" if len(et.source_locations)==1 else "ambiguous_or_unmapped"
+        et.source_line = tex[:m.start()].count("\n") + 1
+        et.source_line_basis = "expanded project text; inspect source_text and included_files for original file mapping"
         et.header = header
         et.rows = rows
+        if extraction_error:
+            et.reason = "extraction failure: " + extraction_error
+            tables.append(et); continue
         if len(rows) < 2 or len(header) < 2:
             et.reason = f"too small to analyze ({len(rows)+1}x{len(header)})"
             tables.append(et); continue
@@ -241,4 +323,4 @@ def parse_latex(path_or_text: str) -> LatexParse:
     for s in stat_strings:
         if s not in seen:
             seen.add(s); uniq.append(s)
-    return LatexParse(path=name, tables=tables, stat_strings=uniq, notes=notes)
+    return LatexParse(path=name, tables=tables, stat_strings=uniq, notes=notes + include_issues, included_files=included, include_issues=include_issues)
