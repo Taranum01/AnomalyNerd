@@ -409,11 +409,13 @@ def detect_level_shifts(t: TidyTable, baseline_frac=0.30, min_baseline=5,
                         z_thresh=3.0, persist=3, expect_flat=None):
     """Flag a SUSTAINED departure from an early stable baseline (a regime/level shift).
 
-    This is the ozone-hole pattern: a long-stable series (baseline mean +/- spread)
+    This is the ozone-hole pattern: a long-stable series (baseline level +/- spread)
     that drifts to a new level and STAYS there. Single sharp jumps are T1's job; this
     catches slow, persistent shifts that no single step reveals. For each numeric axis,
-    the first `baseline_frac` of the ordered series defines the baseline; later points
-    that sit > z_thresh baseline-SDs away for >= `persist` consecutive steps are flagged.
+    the first `baseline_frac` of the ordered series defines the baseline (median/MAD,
+    per the design rule, so a shift starting inside that window cannot suppress its own
+    detection); later points that sit > z_thresh baseline-spreads away for >= `persist`
+    consecutive steps are flagged.
     """
     from statistics import mean, pstdev
     expect_flat = set(expect_flat or [])
@@ -437,7 +439,14 @@ def detect_level_shifts(t: TidyTable, baseline_frac=0.30, min_baseline=5,
             nb = max(min_baseline, int(len(pts) * baseline_frac))
             base_pts = pts[:nb]
             base_vals = [v for _, v in base_pts]
-            mu = mean(base_vals); sd = _safe_pstdev(base_vals) or (abs(mu) * 0.05) or 1.0
+            # Robust center/spread per the module design rule (median/MAD, not mean/SD):
+            # when the true shift begins INSIDE the baseline window, a mean/SD baseline is
+            # contaminated by shifted points - the SD inflates and the shift is missed or
+            # mis-measured (verified: a 2x sustained shift at 25% of the series was not
+            # flagged at all). The median/MAD baseline resists up to ~50% contamination.
+            mu = median(base_vals)
+            mad = median([abs(v - mu) for v in base_vals]) * 1.4826
+            sd = mad or (abs(mu) * 0.05) or 1.0
 
             # TREND GUARD: if the baseline is itself trending (not flat), fit its linear
             # trend and judge later points against the EXTRAPOLATED trend, not a flat mean.

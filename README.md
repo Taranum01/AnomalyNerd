@@ -77,7 +77,7 @@ the pipeline still runs and says so. On a paired sample, PDF table coverage rose
 
 Run the tests:
 ```bash
-pytest -q    # 131 tests across 9 test files, a few seconds
+pytest -q    # 136 tests across 10 test files, a few seconds
 ```
 
 ---
