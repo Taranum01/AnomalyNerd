@@ -75,6 +75,43 @@ def _numeric_fraction(values) -> float:
     return got / len(vals)
 
 
+def _longest_numeric_run(values) -> int:
+    """Longest run of consecutive numeric cells in a column, ignoring blanks; a non-numeric
+    non-blank cell breaks the run. A real results column shows a solid block of numbers even
+    when the extractor merged prose fragments into the same column."""
+    best = cur = 0
+    for v in values:
+        c = _clean(v)
+        if c == "":
+            continue
+        if _parse_number(c) is not MISSING:
+            cur += 1; best = max(best, cur)
+        else:
+            cur = 0
+    return best
+
+
+def _numeric_multiset(rows) -> dict:
+    """Multiset of the parsed numeric cell values across table body rows."""
+    counts = {}
+    for row in rows:
+        for cell in row:
+            v = _parse_number(_clean(cell))
+            if v is not MISSING:
+                counts[v] = counts.get(v, 0) + 1
+    return counts
+
+
+def _shares_numeric_core(docling_et, merged_et) -> bool:
+    """True when a Docling-isolated table carries the numeric core of a merged stand-in:
+    at least 4 shared numeric cell values, the same run length that marked the stand-in
+    as merged. Used to replace only the stand-ins the layout model actually recovered."""
+    a = _numeric_multiset(merged_et.rows)
+    b = _numeric_multiset(docling_et.rows)
+    shared = sum(min(a[v], b[v]) for v in a.keys() & b.keys())
+    return shared >= 4
+
+
 def _looks_like_header(row) -> bool:
     """A header row is mostly non-numeric labels."""
     cells = [_clean(c) for c in row if _clean(c) != ""]
@@ -219,7 +256,15 @@ def _assess_and_tidy(tbl, page, idx) -> ExtractedTable:
     et.header = clean_header
     et.rows = body
     if len(numeric_cols) == 0:
-        et.reason = "no numeric column found; nothing to check for value anomalies"
+        # A column with a solid numeric RUN but low overall numeric fraction is a real results
+        # table merged with surrounding prose text. Mark it so (status "merged") so the layout
+        # recovery step can try to isolate the real table via the layout model.
+        if any(_longest_numeric_run(vs) >= 4 for vs in col_vals.values()):
+            et.status = "merged"
+            et.reason = ("a results table was detected but it is merged with surrounding text; "
+                         "attempting layout-model isolation")
+        else:
+            et.reason = "no numeric column found; nothing to check for value anomalies"
         return et
 
     # --- quality gate: reject fragmented / figure-like "tables" -----------------
@@ -366,13 +411,49 @@ def parse_pdf(path: str) -> PdfParse:
     # papers which the coordinate-based strategies above miss. Docling is an OPTIONAL heavy
     # dependency; if it is not installed we simply skip this step and report honestly.
     usable_so_far = sum(1 for t in tables if t.status in ("ok", "partial"))
-    if usable_so_far == 0:
+    merged_tables = [t for t in tables if t.status == "merged"]
+    # Run the layout model (Docling) when pdfplumber found NO usable table at all, OR when it
+    # found tables that are merged with surrounding text. Docling's layout model isolates the
+    # true table region, so it can recover a clean results table that pdfplumber merged with
+    # prose. Clean Docling tables are ADDED; the merged pdfplumber stand-ins they replace are
+    # dropped (we keep them only if Docling recovers nothing, so the gap is still reported).
+    if usable_so_far == 0 or merged_tables:
         docling_tables, docling_note = _try_docling(path)
         if docling_note:
             notes.append(docling_note)
         if docling_tables:
-            # A fallback does not erase earlier extraction gaps.
-            tables = tables + docling_tables
+            if merged_tables:
+                # Docling re-detects EVERY table region on the page, including tables
+                # pdfplumber already parsed cleanly. Drop those duplicates (the same
+                # signature test as the per-page dedupe above) so no table is analyzed twice.
+                kept_sigs = {(tuple(t.header), tuple(tuple(r) for r in t.rows))
+                             for t in tables if t.status != "merged"}
+                fresh_docling = []
+                for dt in docling_tables:
+                    sig = (tuple(dt.header), tuple(tuple(r) for r in dt.rows))
+                    if sig in kept_sigs:
+                        continue
+                    kept_sigs.add(sig)
+                    fresh_docling.append(dt)
+                # Replace only the merged stand-ins the layout model actually recovered. A
+                # merged table it could not isolate is downgraded to an honest "could not
+                # isolate" skip, so the gap is reported, never silently dropped.
+                for t in merged_tables:
+                    if not any(_shares_numeric_core(dt, t) for dt in fresh_docling):
+                        t.status = "skipped"
+                        t.reason = ("a results table was detected but it is merged with "
+                                    "surrounding text and the layout model could not isolate "
+                                    "it; not analyzed")
+                tables = [t for t in tables if t.status != "merged"] + fresh_docling
+            else:
+                tables = tables + docling_tables
+        else:
+            # Docling recovered nothing: downgrade the merged markers to an honest "could not
+            # separate" skip so they are reported (not silently dropped, not falsely analyzed).
+            for t in merged_tables:
+                t.status = "skipped"
+                t.reason = ("a results table was detected but it is merged with surrounding "
+                            "text and the layout model could not isolate it; not analyzed")
 
     if not tables:
         notes.append("no tables were detected in this PDF; if the paper has tables, "

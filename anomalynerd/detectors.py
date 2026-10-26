@@ -875,7 +875,7 @@ def detect_point_outliers(t: TidyTable, z_thresh=3.5, min_points=5):
     # ---- whole-table pass: a lone GROSS outlier in a table whose slices are each too small
     # for the per-slice passes above. A table like (3 settings x 2 methods) has only 3 points
     # per series, below min_points, so an obvious outlier (e.g. 443 among values near 60-90)
-    # is missed. Pool EVERY metric value in the table and flag a single value that is grossly
+    # is missed. Pool EVERY metric value in the table and flag a single value that stands out
     # outside the rest. The threshold is deliberately high (gross outliers only) so this does
     # not add false positives on normal tables. Skipped if an outlier was already flagged.
     if not any(f.type == "point_outlier" for f in flags):
@@ -923,7 +923,7 @@ def detect_point_outliers(t: TidyTable, z_thresh=3.5, min_points=5):
                     detail={"value": v, "mode": "whole_table", "log_scale": is_log},
                     strength=9.0, support=1.0,
                     suggestion=f"Single {t.metric_name} value {v:g} at {coords} stands out "
-                               f"grossly from every other value in the table — you may want to investigate.",
+                               f"from every other value in the table — you may want to investigate.",
                 ))
     return flags
 

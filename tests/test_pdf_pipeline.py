@@ -393,3 +393,109 @@ def test_bounded_runner_surfaces_notes():
     notes = [n for r in runs for n in r.get("notes", [])]
     assert any("not determinable" in n for n in notes), \
         "notes must travel through the bounded runner into report diagnostics"
+
+
+def test_merged_table_gets_marked_merged_status():
+    """A results table merged with prose is marked status='merged' (so the layout-recovery step
+    tries to isolate it), not silently reported as 'no numeric column'."""
+    from anomalynerd.pdf_ingest import _assess_and_tidy
+    rows = [["", "Setting", "Score"]]
+    rows += [["", f"method-{i}", f"{40+i}.5"] for i in range(6)]
+    rows += [["", "prose", frag] for frag in
+             ["owninthefe", "ings. Trivia", "fiedthatasign", "erformedinS", "astoryorset"]]
+    et = _assess_and_tidy(rows, page=1, idx=0)
+    assert et.status == "merged"
+    assert "merged with surrounding text" in (et.reason or "")
+
+
+def test_genuinely_nonnumeric_table_still_says_no_numeric():
+    from anomalynerd.pdf_ingest import _assess_and_tidy
+    rows = [["Name", "Role"], ["Alice", "lead"], ["Bob", "member"], ["Cara", "member"]]
+    et = _assess_and_tidy(rows, page=1, idx=0)
+    assert et.status not in ("ok", "partial", "merged")
+    assert "no numeric column" in (et.reason or "")
+
+
+# --- layout-recovery replacement rules -------------------------------------------------
+# Regression tests for the Docling fallback branch of parse_pdf: the layout model
+# re-detects every table region on the page, so recovery must (a) not duplicate tables
+# pdfplumber already parsed cleanly, (b) replace only the merged stand-ins it actually
+# recovered, and (c) report the rest as honest "could not isolate" skips.
+
+class _FakePage:
+    def __init__(self, tables): self._tables = tables
+    def extract_text(self): return "body text"
+    def extract_tables(self, settings=None):
+        return [] if settings else self._tables
+
+
+class _FakePDF:
+    def __init__(self, pages): self.pages = pages
+    def __enter__(self): return self
+    def __exit__(self, *args): return False
+
+
+_GOOD_ROWS = [["Setting", "Score"]] + [[f"m{i}", f"{40 + i}.5"] for i in range(5)]
+_MERGED_ROWS = [["", "Setting", "Score"]] \
+    + [["", f"method-{i}", f"{40 + i}.5"] for i in range(6)] \
+    + [["", "prose", frag] for frag in
+       ["owninthefe", "ings. Trivia", "fiedthatasign", "erformedinS", "astoryorset"]]
+_RECOVERED_ROWS = [["Setting", "Score"]] + [[f"method-{i}", f"{40 + i}.5"] for i in range(6)]
+
+
+def _docling_et(rows):
+    from anomalynerd.pdf_ingest import _assess_and_tidy
+    et = _assess_and_tidy(rows, 0, 0)
+    et.backend = "docling"
+    return et
+
+
+def _run_parse(monkeypatch, pages, docling_tables):
+    from anomalynerd import pdf_ingest as pi
+    monkeypatch.setattr(pi.pdfplumber, "open", lambda path: _FakePDF(pages))
+    monkeypatch.setattr(pi, "_try_docling", lambda path: (docling_tables, None))
+    return pi.parse_pdf("fake.pdf")
+
+
+def _sig(et):
+    return (tuple(et.header), tuple(tuple(r) for r in et.rows))
+
+
+def test_docling_recovery_does_not_duplicate_good_tables(monkeypatch):
+    """When merged tables trigger the layout model on a paper that also has cleanly parsed
+    tables, the Docling copies of those good tables must be dropped, not analyzed twice."""
+    res = _run_parse(monkeypatch,
+                     [_FakePage([_GOOD_ROWS, _MERGED_ROWS])],
+                     [_docling_et(_GOOD_ROWS), _docling_et(_RECOVERED_ROWS)])
+    good = [t for t in res.tables if _sig(t) == _sig(_docling_et(_GOOD_ROWS))
+            and t.status in ("ok", "partial")]
+    assert len(good) == 1, f"good table must appear exactly once, got {len(good)}"
+    assert any(t.backend == "docling" and _sig(t) == _sig(_docling_et(_RECOVERED_ROWS))
+               for t in res.tables), "recovered Docling table must be kept"
+    assert not any(t.status == "merged" for t in res.tables)
+
+
+def test_unrecovered_merged_table_is_reported_not_dropped(monkeypatch):
+    """On PARTIAL recovery, a merged table the layout model could not isolate must remain
+    visible as an honest skip; only the recovered stand-in is replaced."""
+    other_merged = [["", "Model", "Acc"]] \
+        + [["", f"model-{i}", f"{50 + i}.1"] for i in range(6)] \
+        + [["", "prose", frag] for frag in
+           ["abcdefgh", "ijklmnop", "qrstuvwx", "yzabcdef", "ghijklmn", "opqrstuv"]]
+    res = _run_parse(monkeypatch,
+                     [_FakePage([_MERGED_ROWS, other_merged])],
+                     [_docling_et(_RECOVERED_ROWS)])
+    assert not any(t.status == "merged" for t in res.tables)
+    skipped = [t for t in res.tables
+               if t.status == "skipped" and "could not isolate" in (t.reason or "")]
+    assert len(skipped) == 1, f"the unrecovered merged table must be reported, got {res.tables}"
+    assert any(t.backend == "docling" for t in res.tables)
+
+
+def test_duplicate_docling_results_collapse(monkeypatch):
+    """Identical tables in the layout model's own output are kept only once."""
+    res = _run_parse(monkeypatch,
+                     [_FakePage([_MERGED_ROWS])],
+                     [_docling_et(_RECOVERED_ROWS), _docling_et(_RECOVERED_ROWS)])
+    recovered = [t for t in res.tables if t.backend == "docling"]
+    assert len(recovered) == 1, f"duplicate Docling tables must collapse, got {len(recovered)}"
