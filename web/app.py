@@ -54,16 +54,41 @@ def _flag_view(flag, table_name):
     }
 
 
-def _analyze_csv(path, expect_flat):
-    """Single-table CSV path: one tidy table -> flags."""
+def _analyze_csv(path, expect_flat, display_name):
+    """Single-table CSV path: one tidy table -> flags. The table is named after the uploaded
+    file, not the temporary copy the analyzer reads."""
     t = read_csv(path)
     flags = analyze(t, expect_flat=expect_flat or None)
+    name = Path(display_name).stem or "table"
     tables = [{
-        "name": t.name or "table",
+        "name": name,
         "metric": t.metric_name,
-        "flags": [_flag_view(f, t.name or "table") for f in flags],
+        "flags": [_flag_view(f, name) for f in flags],
     }]
-    return {"source_kind": "csv", "tables": tables, "could_not_check": []}
+    return {"source_kind": "csv", "tables": tables, "could_not_check": [], "stat_ok": []}
+
+
+STATS_TABLE = "statistics in the text"
+
+
+def _stat_views(stat_findings):
+    """Split statistical/digit checks for display. A check that FOUND a problem becomes a flag
+    card (priority from its severity) so it is counted and filtered like any other flag; a check
+    that passed is listed separately. Not-applicable checks are already in could_not_check."""
+    cards, passed = [], []
+    for s in stat_findings:
+        if s.status == "finding":
+            cards.append({
+                "type": s.kind,
+                "priority": (s.severity or "low").upper() if (s.severity or "").lower() in ("high", "medium", "low") else "LOW",
+                "axis": None,
+                "coords": None,
+                "suggestion": s.detail,
+                "table": STATS_TABLE,
+            })
+        elif s.status == "ok":
+            passed.append(f"{s.kind}: {s.detail}")
+    return cards, passed
 
 
 def _analyze_article(path, expect_flat):
@@ -78,10 +103,14 @@ def _analyze_article(path, expect_flat):
             "metric": "",
             "flags": [_flag_view(f, where) for f in flags],
         })
+    cards, passed = _stat_views(res.stat_findings)
+    if cards:
+        tables.append({"name": STATS_TABLE, "metric": "", "flags": cards})
     return {
         "source_kind": res.source_kind,
         "tables": tables,
         "could_not_check": list(res.could_not_check),
+        "stat_ok": passed,
     }
 
 
@@ -107,7 +136,7 @@ async def analyze_upload(
         tmp.write(data)
         tmp.close()
         if ext == ".csv":
-            result = _analyze_csv(tmp.name, flat_axes)
+            result = _analyze_csv(tmp.name, flat_axes, name)
         else:
             result = _analyze_article(tmp.name, flat_axes)
     except Exception as e:
@@ -131,7 +160,8 @@ async def analyze_upload(
         "source_kind": result["source_kind"],
         "tables": result["tables"],
         "could_not_check": result["could_not_check"],
-        "n_tables": len(result["tables"]),
+        "stat_ok": result.get("stat_ok", []),
+        "n_tables": sum(1 for t in result["tables"] if t["name"] != STATS_TABLE),
         "n_flags": len(all_flags),
         "counts": counts,
     }

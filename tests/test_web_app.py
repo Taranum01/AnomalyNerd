@@ -90,3 +90,34 @@ def test_server_binds_loopback_only():
     assert 'host="127.0.0.1"' in src
     assert "0.0.0.0" not in src
     assert 'host="::"' not in src
+
+
+def test_statistics_checks_are_shown_and_counted(client):
+    """A wrong reported p-value in a Word file appears as a HIGH flag card (counted and
+    filterable), and a correct one is listed as checked out."""
+    docx = pytest.importorskip("docx")
+    d = docx.Document()
+    d.add_paragraph("We report t(10) = 5.04, p = .0005 and a second test t(28) = 2.20, p = .45.")
+    t = d.add_table(rows=4, cols=2)
+    for i, (a, b) in enumerate([("x", "y"), ("1", "10"), ("2", "12"), ("3", "15")]):
+        t.cell(i, 0).text, t.cell(i, 1).text = a, b
+    buf = io.BytesIO()
+    d.save(buf)
+    r = client.post("/analyze", files={"file": ("report.docx", buf.getvalue(),
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document")})
+    assert r.status_code == 200, r.text
+    body = r.json()
+    stat_cards = [f for t in body["tables"] for f in t["flags"] if f["type"] == "statcheck"]
+    assert len(stat_cards) == 1 and stat_cards[0]["priority"] == "HIGH"
+    assert "0.45" in stat_cards[0]["suggestion"] and "0.036" in stat_cards[0]["suggestion"]
+    assert body["counts"]["HIGH"] >= 1
+    assert any("statcheck" in s and "consistent" in s for s in body["stat_ok"])
+    # the statistics pseudo-table is not counted as an analyzed table
+    assert all(t["name"] != "statistics in the text" for t in body["tables"][: body["n_tables"]])
+
+
+def test_csv_table_uses_uploaded_file_name(client):
+    r = client.post("/analyze", files={"file": ("lottery.csv", _example_bytes("draft_lottery_1970.csv"), "text/csv")})
+    assert r.status_code == 200
+    names = {t["name"] for t in r.json()["tables"]}
+    assert names == {"lottery"}, names

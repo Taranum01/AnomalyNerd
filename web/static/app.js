@@ -95,6 +95,20 @@
       });
     }
 
+    // reported statistics that were recomputed and agreed (flagged ones are cards above)
+    const okArea = document.getElementById('statOkArea');
+    okArea.innerHTML = '';
+    if (data.stat_ok && data.stat_ok.length) {
+      okArea.innerHTML = '<h2>Reported statistics that checked out</h2>';
+      const wrap = document.createElement('div');
+      wrap.className = 'cnc';
+      data.stat_ok.forEach(c => {
+        const it = document.createElement('div');
+        it.className = 'item'; it.textContent = c; wrap.appendChild(it);
+      });
+      okArea.appendChild(wrap);
+    }
+
     // could-not-check list, tagged CANNOT so the filter can show it
     const cnc = document.getElementById('cncArea');
     cnc.innerHTML = '';

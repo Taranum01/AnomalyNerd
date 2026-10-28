@@ -51,6 +51,16 @@ def _parse_number(s: str):
     if sci:
         t2 = f"{sci.group(1)}e{sci.group(2)}"
 
+    # Magnitude suffixes common in ML papers: "1k" / "300K" (thousand), "1.5M" (million),
+    # "175B" (billion). Without this, a column like 1k, 2k, ... 10k is read as text labels, so
+    # its order is lost and most checks cannot run. Deliberately conservative: only a plain
+    # number immediately followed by k/K, M or B, nothing else in the cell. Lowercase m and b
+    # are NOT accepted (metres, minutes, bits), and neither is "G"/"T" or a trailing word.
+    mag = re.match(r"^([+-]?(?:\d+(?:\.\d*)?|\.\d+))\s?([kKMB])$", t2)
+    if mag:
+        mult = {"k": 1e3, "K": 1e3, "M": 1e6, "B": 1e9}[mag.group(2)]
+        return float(mag.group(1)) * mult
+
     # Mean-plus-uncertainty cells often carry a bracketed interval or parenthesized SD:
     # "0.91 [0.88, 0.94]" or "0.91 (0.03)". Keep the central estimate as the value; the
     # original string remains available in each row's _raw field.

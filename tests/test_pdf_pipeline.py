@@ -510,3 +510,30 @@ def test_duplicate_docling_results_collapse(monkeypatch):
                      [_docling_et(_RECOVERED_ROWS), _docling_et(_RECOVERED_ROWS)])
     recovered = [t for t in res.tables if t.backend == "docling"]
     assert len(recovered) == 1, f"duplicate Docling tables must collapse, got {len(recovered)}"
+
+
+def test_magnitude_suffixes_parse_as_numbers():
+    """'1k', '300K', '1.5M', '175B' are numbers; lowercase m/b (metres, minutes, bits), other
+    letters and trailing words are not."""
+    from anomalynerd.ingest import _parse_number, MISSING
+    assert _parse_number("1k") == 1000
+    assert _parse_number("10k") == 10000
+    assert _parse_number("300K") == 300000
+    assert _parse_number("1.5M") == 1.5e6
+    assert _parse_number("175B") == 175e9
+    for not_a_number in ("5m", "10b", "3G", "1kg", "k", "1k2"):
+        assert _parse_number(not_a_number) is MISSING, not_a_number
+
+
+def test_k_suffixed_axis_is_ordered_and_outlier_found(tmp_path):
+    """A results table indexed 1k..10k is read as an ordered numeric axis, so a planted drop at
+    8k is flagged (before the fix the axis was text labels and nothing was flagged)."""
+    from anomalynerd.analyze_pdf import analyze_source
+    p = tmp_path / "t.tex"
+    rows = [("1k", 71.2), ("2k", 74.8), ("3k", 77.1), ("4k", 78.9), ("5k", 80.3),
+            ("6k", 81.4), ("7k", 82.2), ("8k", 61.0), ("9k", 83.5), ("10k", 84.0)]
+    body = " \\\\\n".join(f"{a} & {b}" for a, b in rows)
+    p.write_text("\\begin{tabular}{lr}\nTraining size & Accuracy \\\\\n" + body + " \\\\\n\\end{tabular}\n")
+    res = analyze_source(str(p))
+    flags = [f for fl in res.table_flags.values() for f in fl]
+    assert any(f.type == "point_outlier" and f.priority == "HIGH" and "61" in f.suggestion for f in flags)
