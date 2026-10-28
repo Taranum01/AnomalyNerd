@@ -2,6 +2,8 @@
 # The PDF / LaTeX article-analysis feature needs these:
 pdfplumber        # extract tables from PDFs
 scipy             # p-value recompute (statcheck) and Benford chi-square
+python-docx       # read tables from Word (.docx) files
+openpyxl          # read sheets from Excel (.xlsx) files
 
 # Optional: a layout-model fallback for borderless tables in PDFs that pdfplumber
 # cannot read. Heavy (pulls torch + ML models); install only if you need PDF fallback.

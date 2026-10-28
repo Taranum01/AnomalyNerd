@@ -189,8 +189,14 @@ def _looks_like_shredded_caption(row) -> bool:
         return False
     return caption_marker
 
-def _assess_and_tidy(tbl, page, idx) -> ExtractedTable:
-    """Turn a raw pdfplumber table into an ExtractedTable with an honest status."""
+def _assess_and_tidy(tbl, page, idx, structured=False) -> ExtractedTable:
+    """Turn a raw table into an ExtractedTable with an honest status.
+
+    structured=True means the grid came from a format that stores real cells (Word, Excel), not
+    from PDF layout extraction. Such a grid cannot be a figure or prose that an extractor misread
+    as a table, so the two PDF-fragmentation heuristics (mostly 1-2 character cells; mostly empty
+    grid) are skipped: they would wrongly reject clean tables of short values like '28' or '-4'.
+    Every other gate (too small, no numeric column, too little numeric content) still applies."""
     rows = [[_clean(c) for c in r] for r in (tbl or [])]
     rows = [r for r in rows if any(c != "" for c in r)]
     n_rows = len(rows)
@@ -284,11 +290,11 @@ def _assess_and_tidy(tbl, page, idx) -> ExtractedTable:
                      f"{width} columns are numeric; looks like fragmented figure/text, "
                      f"not a results table")
         return et
-    if tiny_frac > 0.6:
+    if tiny_frac > 0.6 and not structured:
         et.reason = (f"{tiny_frac:.0%} of cells are 1-2 characters; looks like fragmented "
                      f"figure/text rather than a results table")
         return et
-    if grid_fill < 0.4:
+    if grid_fill < 0.4 and not structured:
         et.reason = (f"only {grid_fill:.0%} of the grid is filled; too sparse to be a "
                      f"reliable results table")
         return et

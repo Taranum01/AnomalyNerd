@@ -49,7 +49,7 @@ The comparison is deliberately scoped to checkable claims (trends, best method, 
 outliers, numbers) and ignores context the numbers cannot confirm (dataset names, "bold =
 best"). Human captions vary in quality, so this is a descriptive comparison, not a score.
 
-### Analyze a whole article (PDF or LaTeX source)
+### Analyze a whole article (PDF, LaTeX, Word or Excel)
 
 AnomalyNerd can read the results tables out of a paper, run the pattern detectors on
 them, run statistical and digit checks (statcheck p-value recompute, GRIM mean
@@ -59,6 +59,8 @@ plausibility, Benford leading-digit), and — importantly — tell you exactly w
 ```bash
 python -m anomalynerd.pdf_cli paper.pdf            # a compiled PDF (incl. appendices)
 python -m anomalynerd.pdf_cli paper.tex            # LaTeX source (far cleaner extraction)
+python -m anomalynerd.pdf_cli paper.docx           # a Word document: every table, plus statistics in the text
+python -m anomalynerd.pdf_cli results.xlsx         # an Excel workbook: each sheet is read as a table
 python -m anomalynerd.pdf_cli paper.pdf --json
 ```
 
@@ -69,15 +71,21 @@ usable tables in the majority of papers where PDF extraction read none. Either w
 report ends with a "WHAT I COULD NOT CHECK (and why)" section — nothing is silently
 skipped.
 
+Word and Excel files store tables as real cells, so they are read exactly, with no layout
+guessing. They still pass the same checks as PDF tables: a table that is too small or has no
+numeric column is listed as not analyzed rather than dropped.
+
 For PDFs without available source, an optional layout-model fallback (Docling) reads many
-borderless tables that the default extractor misses. It is tried only when the fast
-extractor finds nothing, and is an optional dependency (`pip install docling`); without it
-the pipeline still runs and says so. On a paired sample, PDF table coverage rose from 0%
+borderless tables that the default extractor misses. It runs when the fast extractor finds
+nothing, and also when a results table has been merged with the surrounding text, in which
+case the layout model separates the table from the text and the clean version is analyzed. It
+is an optional dependency (`pip install docling`); without it the pipeline still runs and says
+so. On a paired sample, PDF table coverage rose from 0%
 (pdfplumber only) to 43% with the Docling fallback, versus 57% from LaTeX source.
 
 Run the tests:
 ```bash
-pytest -q    # 131 tests across 9 test files, a few seconds
+pytest -q    # 155 tests across 11 test files, under a minute
 ```
 
 ---
@@ -124,6 +132,19 @@ bin or group) — AnomalyNerd is a results-table scanner, not a raw big-data ML 
 
 ---
 
+### Local web page
+
+A small web page lets you upload a file and browse the flagged anomalies, filtered by priority.
+It accepts CSV, Excel, PDF, LaTeX and Word files.
+
+```bash
+pip install -r web/requirements.txt
+python web/app.py            # then open http://127.0.0.1:8000
+```
+
+It runs on your own machine only: it listens on 127.0.0.1, so other computers cannot reach it,
+and it has no login. Do not expose it to a network as it is.
+
 ## Layout
 
 ```
@@ -135,9 +156,11 @@ anomalynerd/            the library
   caption_compare.py    compares it with a paper's own caption
   pdf_ingest.py         finds results tables in a PDF
   latex_ingest.py       finds results tables in LaTeX source
+  office_ingest.py      reads tables from Word (.docx) and Excel (.xlsx) files
   stat_tests.py         statcheck, GRIM and Benford checks
   bounded.py            runs each detector with a time limit
   html_report.py        writes the local review page
+web/                    local upload page (FastAPI), runs on 127.0.0.1 only
 tests/                  regression tests (synthetic data and six real datasets)
 examples/               ready-to-run CSVs, with sources in DATA_SOURCES.md
 FINDINGS.md             what it found on each dataset
@@ -150,7 +173,8 @@ DESIGN.md               the full design notes (detectors, edge cases, validation
 - It **points, it doesn't diagnose** — it tells you *where* to look, not *why*.
 - Telling a genuine regime-shift from an accelerating trend is hard; such cases are reported
   as **low-confidence candidates**, not certainties.
-- Input is CSV today; LaTeX-table and Excel readers are planned.
+- Input can be CSV, Excel, PDF, LaTeX or Word. PDF is the least reliable, because tables have to be
+  reconstructed from the page layout; prefer the LaTeX source, Word or Excel when you have them.
 
 ### Bounded article review (local)
 

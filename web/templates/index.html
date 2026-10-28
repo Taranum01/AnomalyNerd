@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AnomalyNerd</title>
+<style>
+  :root{
+    --bg:#0c1618; --rail:#122226; --panel:#0f1d20; --ink:#eaf3f2; --muted:#93aead;
+    --accent:#2bb6a3; --accent-deep:#1b8576; --line:#20383a;
+    --high:#e0603c; --med:#e0b23c; --low:#5b8f88; --cannot:#6b7f7e;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.55}
+  .shell{display:grid;grid-template-columns:380px 1fr;min-height:100vh}
+  @media (max-width:860px){ .shell{grid-template-columns:1fr} }
+
+  /* LEFT RAIL */
+  .rail{background:var(--rail);border-right:1px solid var(--line);padding:40px 34px;display:flex;flex-direction:column}
+  .brand{display:flex;align-items:center;gap:13px;margin-bottom:10px}
+  .mark{width:46px;height:46px;border-radius:11px;background:var(--accent);
+        display:flex;align-items:center;justify-content:center;font-weight:800;font-size:25px;color:var(--bg)}
+  .brand-word{font-size:25px;font-weight:800}.brand-word em{color:var(--accent);font-style:normal}
+  .tagline{color:var(--muted);font-size:14.5px;margin:4px 0 34px}
+  .section{margin-bottom:28px}
+  .field-label{font-size:13.5px;font-weight:600;color:var(--ink);margin-bottom:10px}
+  .field-label .opt{font-weight:400;color:var(--muted);font-size:12.5px}
+  .upload-btn{display:inline-flex;align-items:center;gap:4px;padding:11px 18px;border-radius:9px;
+              background:#0a1416;border:1px solid var(--line);color:var(--ink);font-size:14px;
+              font-weight:600;cursor:pointer;transition:border-color .15s}
+  .upload-btn:hover{border-color:var(--accent);color:var(--accent)}
+  input[type=file]{display:none}
+  .fname{margin-top:10px;color:var(--muted);font-size:13px;word-break:break-all}
+  input[type=text]{width:100%;padding:11px 12px;border-radius:9px;border:1px solid var(--line);
+        background:#0a1416;color:var(--ink);font-size:14px}
+  .hint{color:var(--muted);font-size:12px;margin-top:7px}
+  button.analyze{width:100%;padding:14px;border:none;border-radius:10px;background:var(--accent);
+         color:var(--bg);font-size:16px;font-weight:700;cursor:pointer;margin-top:6px}
+  button.analyze:hover{background:var(--accent-deep);color:var(--ink)}
+  button.analyze:disabled{opacity:.6;cursor:default}
+  .rail-foot{margin-top:auto;color:var(--muted);font-size:12.5px;padding-top:28px}
+  .rail-foot b{color:var(--low)}
+
+  /* RIGHT PANEL */
+  .main{padding:48px 56px;max-width:900px}
+  .hidden{display:none !important}
+
+  /* empty / welcome state */
+  #welcome h1{font-size:38px;line-height:1.15;margin:0 0 16px;font-weight:800}
+  #welcome h1 .accent{color:var(--accent)}
+  #welcome .lead{font-size:17px;color:var(--muted);margin:0 0 34px;max-width:560px}
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media (max-width:560px){ .cards{grid-template-columns:1fr} }
+  .fcard{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:20px}
+  .fcard .ic{font-size:20px;margin-bottom:9px}
+  .fcard h3{margin:0 0 5px;font-size:15px}.fcard p{margin:0;color:var(--muted);font-size:13px}
+
+  /* loader */
+  #loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:90px 0;text-align:center}
+  .spinner{width:46px;height:46px;border:4px solid var(--line);border-top-color:var(--accent);
+           border-radius:50%;animation:spin .9s linear infinite;margin-bottom:20px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  #loading .msg{color:var(--muted);font-size:15px}
+
+  /* results */
+  #results h1{font-size:26px;margin:0 0 4px}
+  #results .file{color:var(--muted);font-size:14px;margin-bottom:24px;word-break:break-all}
+  .summary{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+  .box{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 18px;
+       min-width:120px;cursor:pointer;transition:border-color .12s,transform .08s;user-select:none}
+  .box:hover{border-color:var(--accent)}
+  .box.active{border-color:var(--accent);background:rgba(43,182,163,.08)}
+  .box .n{font-size:26px;font-weight:800}
+  .box .l{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+  .box.high .n{color:var(--high)} .box.med .n{color:var(--med)} .box.cannot .n{color:var(--cannot)}
+  .filterhint{color:var(--muted);font-size:13px;margin:6px 0 20px;min-height:18px}
+  .filterhint a{color:var(--accent);cursor:pointer}
+
+  h2{font-size:14px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);
+     border-bottom:1px solid var(--line);padding-bottom:9px;margin:26px 0 16px}
+  .flag{border-left:4px solid var(--low);padding:12px 16px;margin:11px 0;background:var(--panel);border-radius:0 9px 9px 0}
+  .flag.HIGH{border-left-color:var(--high)}.flag.MEDIUM{border-left-color:var(--med)}
+  .flag .badge{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:6px;
+               background:var(--low);color:var(--bg);text-transform:uppercase;letter-spacing:.04em}
+  .flag.HIGH .badge{background:var(--high)}.flag.MEDIUM .badge{background:var(--med);color:#2a2410}
+  .flag .type{color:var(--muted);font-size:12.5px;margin-left:9px}
+  .flag .sug{margin-top:8px;font-size:14.5px}
+  .cnc{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 20px}
+  .cnc .item{color:var(--muted);font-size:13px;margin:6px 0;border-bottom:1px solid var(--line);padding-bottom:6px}
+  .cnc .item:last-child{border-bottom:none}
+  .none{color:var(--muted);font-size:14px;font-style:italic;margin:10px 0}
+  .disclaim{color:var(--muted);font-size:13px;margin-top:28px;border-top:1px solid var(--line);padding-top:16px}
+  #errorbox{background:rgba(224,96,60,.1);border:1px solid var(--high);border-radius:10px;padding:16px 18px;color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- LEFT: upload (unchanged, always visible) -->
+  <form class="rail" id="form">
+    <div class="brand"><div class="mark">A</div><div class="brand-word">Anomaly<em>Nerd</em></div></div>
+    <p class="tagline">Flag the numbers in a results table worth a closer look. It points; it does not accuse.</p>
+
+    <div class="section">
+      <div class="field-label">Upload a table or paper</div>
+      <label class="upload-btn" for="file">&#8681;&nbsp; Choose file</label>
+      <input type="file" name="file" id="file" accept=".csv,.xlsx,.pdf,.tex,.docx" required>
+      <div class="fname" id="fname">No file chosen</div>
+      <div class="hint">Table (CSV or Excel), or article (PDF, LaTeX or Word)</div>
+    </div>
+
+    <div class="section">
+      <div class="field-label">Expected-flat axes <span class="opt">(optional)</span></div>
+      <input type="text" name="expect_flat" id="expect_flat" placeholder="e.g. year, draw_order">
+      <div class="hint">Name an axis that should be flat or random (like a lottery draw order); a trend there is treated as a real anomaly. Leave blank otherwise.</div>
+    </div>
+
+    <button class="analyze" id="analyzeBtn" type="submit">Analyze &rarr;</button>
+    <div class="rail-foot">Runs locally. Every flag is a <b>suggestion to look</b>, not a verdict, and the report lists what it could not check.</div>
+  </form>
+
+  <!-- RIGHT: welcome / loader / results all live here; JS toggles them -->
+  <div class="main">
+
+    <div id="welcome">
+      <h1>Find the values<br>worth a <span class="accent">second look</span>.</h1>
+      <p class="lead">Upload a results table or a whole paper on the left. AnomalyNerd reads the tables, points out trends, outliers, sudden jumps, and internal contradictions, and tells you plainly what it could not check.</p>
+      <div class="cards">
+        <div class="fcard"><div class="ic">&#128201;</div><h3>Patterns, described</h3><p>Trends, level shifts, and relationships are described, not accused, unless there is a real reason.</p></div>
+        <div class="fcard"><div class="ic">&#9888;</div><h3>Outliers &amp; jumps</h3><p>A lone value far from its peers, or a sudden jump, is flagged for review with its evidence.</p></div>
+        <div class="fcard"><div class="ic">&#128260;</div><h3>Cross-table checks</h3><p>The same number reported differently in two tables of a paper is flagged as a contradiction.</p></div>
+        <div class="fcard"><div class="ic">&#128269;</div><h3>Honest coverage</h3><p>It shows how many tables it could read, and lists the ones it could not, instead of faking a result.</p></div>
+      </div>
+    </div>
+
+    <div id="loading" class="hidden">
+      <div class="spinner"></div>
+      <div class="msg">Analyzing… reading tables and running detectors. Large PDFs can take a moment.</div>
+    </div>
+
+    <div id="results" class="hidden">
+      <h1>Analysis results</h1>
+      <div class="file" id="resFile"></div>
+
+      <div class="summary" id="summary"><!-- clickable category boxes injected here --></div>
+      <div class="filterhint" id="filterHint"></div>
+
+      <div id="flagsArea"></div>
+
+      <h2>What we could not check (and why)</h2>
+      <div id="cncArea"></div>
+
+      <p class="disclaim">AnomalyNerd points; it does not diagnose. Every flag is a candidate for human review, and a value flagged as an outlier or trend is not by itself evidence of an error.</p>
+    </div>
+
+    <div id="errorbox" class="hidden"></div>
+
+  </div>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

@@ -275,4 +275,4 @@ Package `anomalynerd/` (Python, pandas/numpy):
 
 **Validated on 8 real datasets** (a research paper's results, ozone, CO₂, Anscombe, Newcomb, draft lottery, thyroid-as-summary, and two ordered-category tables) + synthetic, with zero false HIGH/MEDIUM flags. Big datasets are handled by first **summarizing** them into a results table (rates/means per bin or group) — the tool is a results-table scanner, not a raw big-data ML classifier.
 
-**Still to do:** Excel/HTML/Markdown/LaTeX ingest wrappers (LaTeX parser exists for a research paper's results); more public-dataset validations; optional LLM layer to *phrase* suggestions (never to decide them).
+**Still to do:** HTML/Markdown ingest wrappers (Excel, Word and LaTeX ingest are done); more public-dataset validations; optional LLM layer to *phrase* suggestions (never to decide them).

@@ -30,8 +30,21 @@ class PdfAnalysis:
     could_not_check: list = field(default_factory=list)
     non_table_count: int = 0           # clear metadata/prose blocks omitted from that list
     detector_runs: dict = field(default_factory=dict)
-    source_kind: str = "pdf"           # "pdf" | "latex"
+    source_kind: str = "pdf"           # "pdf" | "latex" | "docx" | "xlsx"
     cross_table_flags: list = field(default_factory=list)
+
+
+_UNIT = {"docx": "table", "xlsx": "sheet"}   # what a "page" number means per format
+_LABEL = {"latex": "LaTeX source", "docx": "Word document", "xlsx": "Excel workbook"}
+
+
+def _loc(kind, page, idx):
+    """Human-readable location of a table: 'page 3 (#0)' for PDFs, 'table 2' for Word,
+    'sheet 1' for Excel, '#0' when there is no page (LaTeX)."""
+    unit = _UNIT.get(kind)
+    if unit and page:
+        return f"{unit} {page}"
+    return f"page {page} (#{idx})" if page else f"table #{idx}"
 
 
 def analyze_pdf(path: str, expect_flat=None) -> PdfAnalysis:
@@ -41,7 +54,7 @@ def analyze_pdf(path: str, expect_flat=None) -> PdfAnalysis:
 
 
 def analyze_source(path: str, expect_flat=None, detector_seconds=4.0, checkpoint_dir=None) -> PdfAnalysis:
-    """Analyze a PDF or a LaTeX source file, dispatching on extension. LaTeX source gives
+    """Analyze a PDF, LaTeX, Word (.docx) or Excel (.xlsx) file, dispatching on extension. LaTeX source gives
     far cleaner table extraction than a compiled PDF, so prefer it when available."""
     low = path.lower()
     if low.endswith((".tex", ".txt")):
@@ -51,6 +64,14 @@ def analyze_source(path: str, expect_flat=None, detector_seconds=4.0, checkpoint
         if not hasattr(parse, "n_pages"):
             parse.n_pages = 0
         return _analyze_parse(path, parse, expect_flat, source_kind="latex", detector_seconds=detector_seconds, checkpoint_dir=checkpoint_dir)
+    if low.endswith(".docx"):
+        from .office_ingest import parse_docx
+        parse = parse_docx(path)
+        return _analyze_parse(path, parse, expect_flat, source_kind="docx", detector_seconds=detector_seconds, checkpoint_dir=checkpoint_dir)
+    if low.endswith(".xlsx"):
+        from .office_ingest import parse_xlsx
+        parse = parse_xlsx(path)
+        return _analyze_parse(path, parse, expect_flat, source_kind="xlsx", detector_seconds=detector_seconds, checkpoint_dir=checkpoint_dir)
     parse = parse_pdf(path)
     return _analyze_parse(path, parse, expect_flat, source_kind="pdf", detector_seconds=detector_seconds, checkpoint_dir=checkpoint_dir)
 
@@ -65,8 +86,7 @@ def _analyze_parse(path, parse, expect_flat, source_kind="pdf", detector_seconds
     # quantities are never compared.
     for t in parse.tables:
         page = getattr(t, "page", 0)
-        where = (f"page {t.page} (#{t.index_on_page})" if page
-                 else f"table #{t.index_on_page}")
+        where = _loc(source_kind, page, t.index_on_page)
         tidies = getattr(t, "tidies", None) or ([t.tidy] if t.tidy is not None else [])
         if t.status in ("ok", "partial") and tidies:
             for mi, tidy in enumerate(tidies):
@@ -129,11 +149,11 @@ def format_report(res: PdfAnalysis) -> str:
     p = res.parse
     L = []
     kind = getattr(res, "source_kind", "pdf")
-    label = "LaTeX source" if kind == "latex" else "PDF"
+    label = _LABEL.get(kind, "PDF")
     L.append(f"AnomalyNerd {label} report for '{p.path.split('/')[-1]}'")
     L.append("=" * 64)
     usable = [t for t in p.tables if t.status in ("ok", "partial")]
-    if kind == "latex":
+    if kind in ("latex", "docx", "xlsx"):
         L.append(f"Tables found: {len(p.tables)}   Tables analyzed: {len(usable)}   "
                  f"Reported statistics found: {len(p.stat_strings)}")
     else:
@@ -158,7 +178,9 @@ def format_report(res: PdfAnalysis) -> str:
         tidies = getattr(t, "tidies", None) or ([t.tidy] if t.tidy is not None else [])
         for mi, tidy in enumerate(tidies):
             flags = res.table_flags.get((pg, t.index_on_page, mi), [])
-            if pg:
+            if pg and kind in _UNIT:
+                hdr = f"Table in {_loc(kind, pg, t.index_on_page)}, metric '{tidy.metric_name}'"
+            elif pg:
                 hdr = f"Table on page {pg} (#{t.index_on_page}), metric '{tidy.metric_name}'"
             else:
                 tname = tidy.name if getattr(tidy, "name", "") else f"#{t.index_on_page}"

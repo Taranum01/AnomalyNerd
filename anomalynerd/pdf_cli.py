@@ -1,4 +1,4 @@
-"""CLI for AnomalyNerd PDF analysis:  python -m anomalynerd.pdf_cli FILE.pdf"""
+"""CLI for AnomalyNerd article analysis:  python -m anomalynerd.pdf_cli FILE (.pdf, .tex, .docx, .xlsx)"""
 from __future__ import annotations
 import argparse, sys, json
 
@@ -6,12 +6,12 @@ from .analyze_pdf import analyze_source, format_report
 
 
 def main(argv=None):
-    """Command-line entry point for checking the tables of a PDF or LaTeX article."""
+    """Command-line entry point for checking the tables of a PDF, LaTeX, Word or Excel file."""
     ap = argparse.ArgumentParser(
         prog="anomalynerd-pdf",
-        description="Find anomalies in the results tables of a PDF or LaTeX article, run statistical "
+        description="Find anomalies in the results tables of a PDF, LaTeX, Word or Excel file, run statistical "
                     "and digit checks, and report what could not be checked.")
-    ap.add_argument("pdf", help="Path to the article (.pdf or .tex)")
+    ap.add_argument("pdf", help="Path to the file (.pdf, .tex, .docx or .xlsx)")
     ap.add_argument("--expect-flat", nargs="*", default=None,
                     help="Axis names that should be flat/random (a trend there is a real "
                          "anomaly, e.g. a lottery)")
@@ -25,7 +25,7 @@ def main(argv=None):
     except FileNotFoundError:
         print(f"error: file not found: {args.pdf}", file=sys.stderr); return 2
     except Exception as e:
-        print(f"error: could not analyze PDF: {type(e).__name__}: {e}", file=sys.stderr)
+        print(f"error: could not analyze file: {type(e).__name__}: {e}", file=sys.stderr)
         return 2
 
     if args.json:
