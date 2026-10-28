@@ -189,6 +189,37 @@ def _looks_like_shredded_caption(row) -> bool:
         return False
     return caption_marker
 
+_SIZE_CELL = re.compile(r"^\d+(?:\.\d+)?\s?[kKMB]$")
+
+
+def _merge_size_subheader(header, body):
+    """Fold a second header row of model sizes into the header.
+
+    Comparison tables often put the model size under each model name ("GPT-3" over "175B",
+    "Gopher" over "280B"). That row has no row label, and every value in it is a size; the rows
+    below hold plain scores. Read as data, its sizes (1.75e11) look like huge outliers. When the
+    first body row matches that shape, append each size to its column name ("GPT-3 175B") and
+    drop the row. A size row that is real data (a column of sizes with a label) is left alone."""
+    if len(body) < 3:
+        return header, body
+    first = body[0]
+    filled = [i for i, c in enumerate(first) if c.strip()]
+    if len(filled) < 2 or not all(_SIZE_CELL.match(first[i].strip()) for i in filled):
+        return header, body
+    if first[0].strip():                     # a row label means this row is data
+        return header, body
+    # below it, those columns must hold plain values, not more sizes
+    below = [r[i].strip() for r in body[1:] for i in filled if i < len(r) and r[i].strip()]
+    if not below or sum(1 for c in below if _SIZE_CELL.match(c)) > 0.2 * len(below):
+        return header, body
+    new_header = list(header)
+    for i in filled:
+        if i < len(new_header):
+            name = new_header[i].strip()
+            new_header[i] = f"{name} {first[i].strip()}" if name else first[i].strip()
+    return new_header, body[1:]
+
+
 def _assess_and_tidy(tbl, page, idx, structured=False) -> ExtractedTable:
     """Turn a raw table into an ExtractedTable with an honest status.
 
@@ -232,6 +263,7 @@ def _assess_and_tidy(tbl, page, idx, structured=False) -> ExtractedTable:
     header = norm[0]
     et.original_header = list(header)
     body = norm[1:]
+    header, body = _merge_size_subheader(header, body)
     # Numeric metric words split across boundaries are evidence of a shredded grid.
     fragmented_metric = any(re.match(r"(?i)^(?:[a-z]\s*)?\((?:ms|s|%|kg|g)\)", c.strip()) for c in header)
     if fragmented_metric:
@@ -293,6 +325,18 @@ def _assess_and_tidy(tbl, page, idx, structured=False) -> ExtractedTable:
     if tiny_frac > 0.6 and not structured:
         et.reason = (f"{tiny_frac:.0%} of cells are 1-2 characters; looks like fragmented "
                      f"figure/text rather than a results table")
+        return et
+    # A chart whose axis tick labels and legend were read as a grid: the cells are sparse, and
+    # many rows hold a single lone value (one tick label per line). A real results table puts a
+    # label and its numbers on the same row. Both conditions are required: on the 56 real
+    # tables in our test papers, the sparsest (42% filled) has no single-value rows, and the one
+    # with the most single-value rows (a checklist, 33%) is 78% filled.
+    single_row_frac = (sum(1 for r in body if sum(1 for c in r if c != "") == 1)
+                       / float(max(1, sum(1 for r in body if any(c != "" for c in r)))))
+    if grid_fill < 0.5 and single_row_frac >= 0.25 and not structured:
+        et.reason = (f"looks like a chart read as a table (only {grid_fill:.0%} of the grid is "
+                     f"filled and {single_row_frac:.0%} of rows hold a single value, as axis "
+                     f"labels do); not analyzed")
         return et
     if grid_fill < 0.4 and not structured:
         et.reason = (f"only {grid_fill:.0%} of the grid is filled; too sparse to be a "

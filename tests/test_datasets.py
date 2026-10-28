@@ -209,3 +209,34 @@ def test_whole_table_gross_outlier_small_slices():
     os.unlink(p2.name)
     assert not [f for f in flags2 if f.type == "point_outlier" and f.priority == "HIGH"], \
         "a normal small table must not raise a whole-table false positive"
+
+
+def test_csv_with_leading_comment_block_loads():
+    """NOAA's raw file starts with a '#' licence block above the header; it must load and give
+    the same finding as the clean copy (it used to crash with IndexError)."""
+    import os
+    from anomalynerd.ingest import read_csv
+    from anomalynerd.analyze import analyze
+    ex = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "examples")
+    raw = read_csv(os.path.join(ex, "co2_raw.csv"), metric_col="mean", ignore_cols=["unc"])
+    clean = read_csv(os.path.join(ex, "co2_annual.csv"), metric_col="mean", ignore_cols=["unc"])
+    assert raw.rows == clean.rows
+    assert sorted(f.type for f in analyze(raw)) == sorted(f.type for f in analyze(clean))
+
+
+def test_hash_inside_table_is_not_treated_as_comment(tmp_path):
+    """Only LEADING comment lines are skipped: a '#' header cell inside the table is kept."""
+    from anomalynerd.ingest import read_csv
+    p = tmp_path / "t.csv"
+    p.write_text("# a comment\nmodel,# layers\nA,12\nB,24\nC,48\n")
+    t = read_csv(str(p), metric_col="# layers")
+    assert [r["value"] for r in t.rows] == [12, 24, 48]
+
+
+def test_csv_without_numeric_column_gives_clear_error(tmp_path):
+    import pytest
+    from anomalynerd.ingest import read_csv
+    p = tmp_path / "t.csv"
+    p.write_text("name,role\nalice,lead\nbob,member\n")
+    with pytest.raises(ValueError, match="no numeric column"):
+        read_csv(str(p))

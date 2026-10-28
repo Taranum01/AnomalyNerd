@@ -84,11 +84,13 @@ def main(argv=None):
                      lower_is_better=lower, orders=_parse_orders(args.order),
                      ignore_cols=args.ignore)
     except KeyError as e:
-        import csv as _csv
-        with open(args.csv, newline="") as _f:
-            header = next(_csv.reader(_f))
+        from .ingest import _read_csv_rows
+        header, _ = _read_csv_rows(args.csv)
         print(f"Error: column {e} not found. Available columns: {', '.join(header)}")
         print("Tip: pass one with --metric, and use --ignore for columns to skip.")
+        return 2
+    except ValueError as e:
+        print(f"Error: {e}")
         return 2
 
     expected = {}

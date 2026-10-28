@@ -100,13 +100,37 @@ def _infer_order(levels):
     return None
 
 
+def _read_csv_rows(path):
+    """Return (header, data_rows) for a CSV file. Data portals (NOAA GML, for example) put a
+    licence or description block of '#' comment lines above the header; only LEADING comment and
+    blank lines are skipped, so a '#' inside the table (a "# layers" cell, say) is untouched."""
+    with open(path, newline="", encoding="utf-8-sig") as f:
+        lines = f.readlines()
+    start = 0
+    while start < len(lines) and (not lines[start].strip() or lines[start].lstrip().startswith("#")):
+        start += 1
+    reader = csv.reader(lines[start:])
+    try:
+        header = next(reader)
+    except StopIteration:
+        raise ValueError(f"{path}: no header row found (the file is empty or only comments)")
+    data = [row for row in reader if any(c.strip() for c in row)]
+    return header, data
+
+
+def _last_numeric(numeric_cols, name, header):
+    """The default metric column (the last numeric one). When there is none, raise a clear error
+    instead of an IndexError, so a table with nothing to measure is reported, not crashed on."""
+    if not numeric_cols:
+        raise ValueError(f"{name}: no numeric column found, so there is nothing to analyze "
+                         f"(columns: {', '.join(header)})")
+    return numeric_cols[-1]
+
+
 def read_csv(path, metric_col=None, entity_col=None, lower_is_better=None,
              name=None, orders=None, index_cols=None, ignore_cols=None):
     """Read a CSV results table into a TidyTable. Column roles (metric, entity, axes) are detected unless given."""
-    with open(path, newline="", encoding="utf-8-sig") as f:
-        reader = csv.reader(f)
-        header = next(reader)
-        data = [row for row in reader if any(c.strip() for c in row)]
+    header, data = _read_csv_rows(path)
     cols = {h: [row[i] if i < len(row) else "" for row in data] for i, h in enumerate(header)}
     name = name or path.split("/")[-1]
     orders = orders or {}
@@ -165,7 +189,7 @@ def read_csv(path, metric_col=None, entity_col=None, lower_is_better=None,
                 idx_cols.append(h)
         entity_cols = [h for h in numeric_cols if h not in idx_cols]
         if not entity_cols:                        # safety: fall back to treating last col as metric (LONG)
-            metric_col = numeric_cols[-1]
+            metric_col = _last_numeric(numeric_cols, name, header)
         else:
             rows = []
             for r_i in range(len(data)):
@@ -183,7 +207,7 @@ def read_csv(path, metric_col=None, entity_col=None, lower_is_better=None,
     # LONG: pick metric col. Prefer a name that looks like a metric; otherwise the last
     # NON-index numeric column (an index like 'month_num' is an axis, never the metric).
     mcol = metric_col or (metric_by_name[0] if metric_by_name
-                          else (metric_numeric[-1] if metric_numeric else numeric_cols[-1]))
+                          else (metric_numeric[-1] if metric_numeric else _last_numeric(numeric_cols, name, header)))
     axis_cols = [h for h in header if h != mcol]
     # Drop caller-ignored columns and redundant continuous covariates: a numeric column
     # with (nearly) one distinct value per row is a per-row attribute (e.g. an uncertainty
@@ -268,10 +292,7 @@ def read_tables(path, **kwargs):
 
     This is the entry point the PDF / LaTeX article pipeline uses, where wide multi-metric
     tables are common."""
-    with open(path, newline="", encoding="utf-8-sig") as f:
-        reader = csv.reader(f)
-        header = next(reader)
-        data = [row for row in reader if any(c.strip() for c in row)]
+    header, data = _read_csv_rows(path)
     cols = {h: [row[i] if i < len(row) else "" for row in data]
             for i, h in enumerate(header)}
 

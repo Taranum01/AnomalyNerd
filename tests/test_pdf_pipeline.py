@@ -537,3 +537,54 @@ def test_k_suffixed_axis_is_ordered_and_outlier_found(tmp_path):
     res = analyze_source(str(p))
     flags = [f for fl in res.table_flags.values() for f in fl]
     assert any(f.type == "point_outlier" and f.priority == "HIGH" and "61" in f.suggestion for f in flags)
+
+
+def test_chart_tick_grid_is_not_analyzed():
+    """A chart's axis ticks and legend read as a grid: sparse, many single-value rows."""
+    from anomalynerd.pdf_ingest import _assess_and_tidy
+    rows = [["", "DROP", "(F1)", "", "", "Hellaswag", "(acc)"]]
+    for tick in ("35", "30", "25", "20", "15", "10"):
+        rows.append(["", tick, "", "", "", "", ""])
+        rows.append(["", "", "", "0." + tick[0], "", "0.7", ""])
+    rows.append(["", "QuAC", "(F1)", "", "", "RTE", "(acc)"])
+    et = _assess_and_tidy(rows, 51, 0)
+    assert et.status not in ("ok", "partial")
+    assert "chart read as a table" in et.reason
+
+
+def test_dense_table_with_some_single_value_rows_is_kept():
+    """Section-header rows give a real table single-value rows, but its grid stays dense."""
+    from anomalynerd.pdf_ingest import _assess_and_tidy
+    rows = [["Item", "Score", "N"]]
+    for g in ("Group A", "Group B"):
+        rows.append([g, "", ""])
+        rows += [[f"{g} x{i}", f"{50+i}.5", f"{10+i}"] for i in range(4)]
+    et = _assess_and_tidy(rows, 1, 0)
+    assert "chart read as a table" not in (et.reason or "")
+
+
+def test_structured_grids_are_exempt_from_chart_gate():
+    from anomalynerd.pdf_ingest import _assess_and_tidy
+    rows = [["x", "a", "b", "c"]] + [[str(i), str(i * 2), "", ""] for i in range(1, 9)]
+    et = _assess_and_tidy(rows, 1, 0, structured=True)
+    assert "chart read as a table" not in (et.reason or "")
+
+
+def test_model_size_subheader_row_joins_the_header():
+    """'GPT-3' over '175B' with scores below: the size row is part of the header, not data
+    (read as data, 1.75e11 looked like a huge outlier)."""
+    from anomalynerd.pdf_ingest import _merge_size_subheader
+    header = ["Task", "GPT-3", "Gopher", "LLaMA"]
+    body = [["", "175B", "280B", "65B"], ["Anatomy", "48.0", "56.3", "57.8"],
+            ["Astronomy", "49.0", "65.8", "72.4"], ["Virology", "46.0", "52.4", "53.0"]]
+    h, b = _merge_size_subheader(header, body)
+    assert h == ["Task", "GPT-3 175B", "Gopher 280B", "LLaMA 65B"]
+    assert b == body[1:]
+
+
+def test_labeled_size_row_is_kept_as_data():
+    """A row WITH a label is data, even if its values are sizes."""
+    from anomalynerd.pdf_ingest import _merge_size_subheader
+    header = ["Setting", "A", "B"]
+    body = [["Params", "7B", "13B"], ["Score", "61.0", "64.2"], ["Other", "1.0", "2.0"]]
+    assert _merge_size_subheader(header, body) == (header, body)

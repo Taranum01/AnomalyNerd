@@ -1,0 +1,90 @@
+[
+ {
+  "name": "bert",
+  "source": "arXiv:1810.04805"
+ },
+ {
+  "name": "gpt3",
+  "source": "arXiv:2005.14165"
+ },
+ {
+  "name": "instructgpt",
+  "source": "arXiv:2203.02155"
+ },
+ {
+  "name": "resnet",
+  "source": "arXiv:1512.03385"
+ },
+ {
+  "name": "vgg",
+  "source": "arXiv:1409.1556"
+ },
+ {
+  "name": "attention",
+  "source": "arXiv:1706.03762"
+ },
+ {
+  "name": "econ_arxiv",
+  "source": "arXiv:2009.12836"
+ },
+ {
+  "name": "plos_clinical",
+  "source": "doi:10.1371/journal.pone.0287795"
+ },
+ {
+  "name": "plos_med",
+  "source": "doi:10.1371/journal.pmed.1003583"
+ },
+ {
+  "name": "qbio_clinical",
+  "source": "arXiv:1904.05342"
+ },
+ {
+  "name": "roberta",
+  "source": "arXiv:1907.11692"
+ },
+ {
+  "name": "t5",
+  "source": "arXiv:1910.10683"
+ },
+ {
+  "name": "vit",
+  "source": "arXiv:2010.11929"
+ },
+ {
+  "name": "efficientnet",
+  "source": "arXiv:1905.11946"
+ },
+ {
+  "name": "lora",
+  "source": "arXiv:2106.09685"
+ },
+ {
+  "name": "llama",
+  "source": "arXiv:2302.13971"
+ },
+ {
+  "name": "albert",
+  "source": "arXiv:1909.11942"
+ },
+ {
+  "name": "simclr",
+  "source": "arXiv:2002.05709"
+ },
+ {
+  "name": "glue",
+  "source": "arXiv:1804.07461"
+ },
+ {
+  "name": "llama2",
+  "source": "arXiv:2307.09288"
+ },
+ {
+  "name": "pytorch",
+  "source": "arXiv:1912.01703"
+ },
+ {
+  "name": "roformer",
+  "source": "arXiv:2104.09864"
+ }
+]
