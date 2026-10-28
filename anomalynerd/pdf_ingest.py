@@ -491,6 +491,14 @@ def _try_docling(path: str):
         try:
             opts = PdfPipelineOptions()
             opts.accelerator_options = AcceleratorOptions(device=AcceleratorDevice.CPU)
+            # Disable OCR. AnomalyNerd analyzes text-based research PDFs, where the text layer
+            # is already present, so Docling is used only for table STRUCTURE, not OCR. Leaving
+            # OCR on (Docling's default) invokes the RapidOCR/ONNX native stack, which aborts
+            # the whole process (SIGABRT / "Abort trap: 6") on some PDFs -- a native crash that
+            # a Python try/except cannot catch. Turning OCR off removes that crash path and also
+            # speeds up conversion; a genuinely scanned table would not yield trustworthy
+            # numbers to analyze anyway.
+            opts.do_ocr = False
             conv = DocumentConverter(
                 format_options={InputFormat.PDF: PdfFormatOption(pipeline_options=opts)})
             doc = conv.convert(path).document

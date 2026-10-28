@@ -217,6 +217,17 @@ def test_docling_fallback_is_optional_and_graceful():
     assert note is None or isinstance(note, str)
 
 
+def test_docling_runs_with_ocr_disabled():
+    """The Docling path must set do_ocr=False. Leaving OCR on (Docling's default) invokes the
+    RapidOCR/ONNX native stack, which aborts the whole process (SIGABRT) on some PDFs -- a
+    native crash a Python try/except cannot catch. AnomalyNerd only needs Docling for table
+    structure, not OCR, so OCR must stay off. Guard the source so the setting is not dropped."""
+    import inspect
+    from anomalynerd import pdf_ingest
+    src = inspect.getsource(pdf_ingest._try_docling)
+    assert "do_ocr = False" in src or "do_ocr=False" in src, \
+        "Docling OCR must be disabled to avoid the native abort-trap crash"
+
 def test_extracted_table_has_backend_field():
     """Every ExtractedTable records which backend produced it (pdfplumber or docling)."""
     from anomalynerd.pdf_ingest import ExtractedTable
