@@ -1,0 +1,42 @@
+[
+ {
+  "name": "mistral",
+  "source": "arXiv:2310.06825"
+ },
+ {
+  "name": "opt",
+  "source": "arXiv:2205.01068"
+ },
+ {
+  "name": "gemma",
+  "source": "arXiv:2403.08295"
+ },
+ {
+  "name": "clip",
+  "source": "arXiv:2103.00020"
+ },
+ {
+  "name": "densenet",
+  "source": "arXiv:1608.06993"
+ },
+ {
+  "name": "mobilenetv2",
+  "source": "arXiv:1801.04381"
+ },
+ {
+  "name": "maskrcnn",
+  "source": "arXiv:1703.06870"
+ },
+ {
+  "name": "qwen",
+  "source": "arXiv:2309.16609"
+ },
+ {
+  "name": "flan",
+  "source": "arXiv:2210.11416"
+ },
+ {
+  "name": "falcon",
+  "source": "arXiv:2306.01116"
+ }
+]

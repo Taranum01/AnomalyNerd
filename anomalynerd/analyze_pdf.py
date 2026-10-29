@@ -38,6 +38,24 @@ _UNIT = {"docx": "table", "xlsx": "sheet"}   # what a "page" number means per fo
 _LABEL = {"latex": "LaTeX source", "docx": "Word document", "xlsx": "Excel workbook"}
 
 
+import re as _re
+
+_PARAM_COUNT = _re.compile(r"^\s*\d[\d.,]*\s*[MB]\s*$")
+
+
+def _is_param_count_column(tidy):
+    """True when the metric column is a list of model sizes (7B, 30B, 937M): every number in
+    it carries an M or B suffix and the header names parameters or is blank. The largest
+    size always stands out, so outlier flags on such a column are not reported."""
+    name = (tidy.metric_name or "").lower()
+    leaf = name.rsplit(".", 1)[-1]
+    if not ("param" in name or _re.fullmatch(r"col\d+", leaf)):
+        return False
+    from .model import is_num
+    raws = [str(r.get("_raw", "")) for r in tidy.rows if is_num(r.get("value"))]
+    return len(raws) >= 2 and all(_PARAM_COUNT.match(s) for s in raws)
+
+
 def _loc(kind, page, idx):
     """Human-readable location of a table: 'page 3 (#0)' for PDFs, 'table 2' for Word,
     'sheet 1' for Excel, '#0' when there is no page (LaTeX)."""
@@ -91,6 +109,7 @@ def _analyze_parse(path, parse, expect_flat, source_kind="pdf", detector_seconds
         if t.status in ("ok", "partial") and tidies:
             for mi, tidy in enumerate(tidies):
                 key = (page, t.index_on_page, mi)
+                size_column = _is_param_count_column(tidy)
                 try:
                     from .bounded import run_bounded
                     flags, runs = run_bounded(tidy, seconds=detector_seconds, checkpoint_dir=checkpoint_dir, expect_flat=expect_flat)
@@ -105,6 +124,10 @@ def _analyze_parse(path, parse, expect_flat, source_kind="pdf", detector_seconds
                     res.could_not_check.append(
                         f"{where} metric '{tidy.metric_name}': detectors failed "
                         f"({type(e).__name__}); not analyzed")
+                if size_column:
+                    # model sizes span decades by design, so the largest one always "stands
+                    # out"; drop outlier flags but keep duplicate/flatness (copy-paste) checks
+                    flags = [f for f in flags if f.type != "point_outlier"]
                 res.table_flags[key] = flags
                 if not is_pathological(tidy):
                     res.stat_findings += digit_tests(tidy)

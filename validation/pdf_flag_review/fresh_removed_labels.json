@@ -1,0 +1,182 @@
+[
+ {
+  "paper": "clip",
+  "page": 17,
+  "priority": "HIGH",
+  "type": "win_reversal",
+  "suggestion": "Best col0 changes along Majority Vote on Full Dataset (winners: ['Zero-shot human', 'One-shot human', 'Two-shot human', 'Zero-shot CLIP']); characterize where each wins.",
+  "source": "arXiv:2103.00020",
+  "category": "false_alarm",
+  "reason": "a score column (Majority Vote) read as an axis; one model per level, so each \"wins\" by default"
+ },
+ {
+  "paper": "clip",
+  "page": 17,
+  "priority": "HIGH",
+  "type": "win_reversal",
+  "suggestion": "Best col0 changes along Majority Vote on Full Dataset (winners: ['Zero-shot human', 'One-shot human', 'Two-shot human', 'Zero-shot CLIP']); characterize where each wins.",
+  "source": "arXiv:2103.00020",
+  "category": "false_alarm",
+  "reason": "a score column (Majority Vote) read as an axis; one model per level, so each \"wins\" by default"
+ },
+ {
+  "paper": "clip",
+  "page": 17,
+  "priority": "HIGH",
+  "type": "win_reversal",
+  "suggestion": "Best col0 changes along Majority Vote on Full Dataset (winners: ['Zero-shot human', 'One-shot human', 'Two-shot human', 'Zero-shot CLIP']); characterize where each wins.",
+  "source": "arXiv:2103.00020",
+  "category": "false_alarm",
+  "reason": "a score column (Majority Vote) read as an axis; one model per level, so each \"wins\" by default"
+ },
+ {
+  "paper": "flan",
+  "page": 7,
+  "priority": "HIGH",
+  "type": "win_reversal",
+  "suggestion": "Best FinetuningMixtures changes along Norm. avg. (winners: ['None (no finetuning)', 'CoT', 'CoT, Muffin', 'CoT, Muffin, T0-SF', 'CoT, Muffin, T0-SF, NIV2']); characterize where each wins.",
+  "source": "arXiv:2210.11416",
+  "category": "false_alarm",
+  "reason": "the Norm. avg. score column read as an axis; one mixture per level"
+ },
+ {
+  "paper": "flan",
+  "page": 7,
+  "priority": "HIGH",
+  "type": "win_reversal",
+  "suggestion": "Best FinetuningMixtures changes along Norm. avg. (winners: ['None (no finetuning)', 'CoT', 'CoT, Muffin', 'CoT, Muffin, T0-SF', 'CoT, Muffin, T0-SF, NIV2']); characterize where each wins.",
+  "source": "arXiv:2210.11416",
+  "category": "false_alarm",
+  "reason": "the Norm. avg. score column read as an axis; one mixture per level"
+ },
+ {
+  "paper": "flan",
+  "page": 7,
+  "priority": "HIGH",
+  "type": "win_reversal",
+  "suggestion": "Best FinetuningMixtures changes along Norm. avg. (winners: ['None (no finetuning)', 'CoT', 'CoT, Muffin', 'CoT, Muffin, T0-SF', 'CoT, Muffin, T0-SF, NIV2']); characterize where each wins.",
+  "source": "arXiv:2210.11416",
+  "category": "false_alarm",
+  "reason": "the Norm. avg. score column read as an axis; one mixture per level"
+ },
+ {
+  "paper": "flan",
+  "page": 7,
+  "priority": "HIGH",
+  "type": "win_reversal",
+  "suggestion": "Best FinetuningMixtures changes along Norm. avg. (winners: ['None (no finetuning)', 'CoT', 'CoT, Muffin', 'CoT, Muffin, T0-SF', 'CoT, Muffin, T0-SF, NIV2']); characterize where each wins.",
+  "source": "arXiv:2210.11416",
+  "category": "false_alarm",
+  "reason": "the Norm. avg. score column read as an axis; one mixture per level"
+ },
+ {
+  "paper": "flan",
+  "page": 7,
+  "priority": "HIGH",
+  "type": "win_reversal",
+  "suggestion": "Best FinetuningMixtures changes along Norm. avg. (winners: ['None (no finetuning)', 'CoT', 'CoT, Muffin', 'CoT, Muffin, T0-SF', 'CoT, Muffin, T0-SF, NIV2']); characterize where each wins.",
+  "source": "arXiv:2210.11416",
+  "category": "false_alarm",
+  "reason": "the Norm. avg. score column read as an axis; one mixture per level"
+ },
+ {
+  "paper": "flan",
+  "page": 7,
+  "priority": "HIGH",
+  "type": "win_reversal",
+  "suggestion": "Best FinetuningMixtures changes along Norm. avg. (winners: ['None (no finetuning)', 'CoT', 'CoT, Muffin', 'CoT, Muffin, T0-SF', 'CoT, Muffin, T0-SF, NIV2']); characterize where each wins.",
+  "source": "arXiv:2210.11416",
+  "category": "false_alarm",
+  "reason": "the Norm. avg. score column read as an axis; one mixture per level"
+ },
+ {
+  "paper": "flan",
+  "page": 7,
+  "priority": "HIGH",
+  "type": "win_reversal",
+  "suggestion": "Best FinetuningMixtures changes along Norm. avg. (winners: ['None (no finetuning)', 'CoT', 'CoT, Muffin', 'CoT, Muffin, T0-SF', 'CoT, Muffin, T0-SF, NIV2']); characterize where each wins.",
+  "source": "arXiv:2210.11416",
+  "category": "false_alarm",
+  "reason": "the Norm. avg. score column read as an axis; one mixture per level"
+ },
+ {
+  "paper": "flan",
+  "page": 11,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single Params value 5.4e+11 at Model='U-PaLM' stands out from the rest — you may want to investigate.",
+  "source": "arXiv:2210.11416",
+  "category": "real_explained",
+  "reason": "model-size column: largest model (a setting)"
+ },
+ {
+  "paper": "flan",
+  "page": 30,
+  "priority": "HIGH",
+  "type": "win_reversal",
+  "suggestion": "Best Model changes along Params (winners: ['PaLM', 'Flan-T5-XXL', 'Flan-PaLM']); characterize where each wins.",
+  "source": "arXiv:2210.11416",
+  "category": "false_alarm",
+  "reason": "blank model-size cells grouped as one level; one model per level, no real reversal"
+ },
+ {
+  "paper": "flan",
+  "page": 30,
+  "priority": "HIGH",
+  "type": "win_reversal",
+  "suggestion": "Best Model changes along Params (winners: ['PaLM', 'Flan-T5-XXL', 'Flan-PaLM']); characterize where each wins.",
+  "source": "arXiv:2210.11416",
+  "category": "false_alarm",
+  "reason": "blank model-size cells grouped as one level; one model per level, no real reversal"
+ },
+ {
+  "paper": "flan",
+  "page": 43,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single col0 value 5.4e+11 at col1='U-PaLM' stands out from the rest — you may want to investigate.",
+  "source": "arXiv:2210.11416",
+  "category": "real_explained",
+  "reason": "model-size column: largest model (a setting)"
+ },
+ {
+  "paper": "flan",
+  "page": 46,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single Params value 5.4e+11 at Model='Flan-U-PaLM' stands out from the rest — you may want to investigate.",
+  "source": "arXiv:2210.11416",
+  "category": "real_explained",
+  "reason": "model-size column: largest model (a setting)"
+ },
+ {
+  "paper": "qwen",
+  "page": 13,
+  "priority": "HIGH",
+  "type": "win_reversal",
+  "suggestion": "Best Tool Input (Rouge-L↑) changes along Params (winners: ['89 91', '', 93.0]); characterize where each wins.",
+  "source": "arXiv:2309.16609",
+  "category": "false_alarm",
+  "reason": "two scores fused into one cell ('89 91') garble the comparison"
+ },
+ {
+  "paper": "qwen",
+  "page": 13,
+  "priority": "HIGH",
+  "type": "win_reversal",
+  "suggestion": "Best Tool Input (Rouge-L↑) changes along Params (winners: ['89 91', '', 93.0]); characterize where each wins.",
+  "source": "arXiv:2309.16609",
+  "category": "false_alarm",
+  "reason": "two scores fused into one cell ('89 91') garble the comparison"
+ },
+ {
+  "paper": "qwen",
+  "page": 19,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single Params value 5.4e+11 at {'Model': 'Minerva', 'Math401': '-', 'Math23K': '-', '_raw': '540B'} stands out from every other value in the table — you may want to investigate.",
+  "source": "arXiv:2309.16609",
+  "category": "real_explained",
+  "reason": "model-size column: largest model (a setting)"
+ }
+]

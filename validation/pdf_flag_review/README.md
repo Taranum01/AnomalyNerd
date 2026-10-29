@@ -8,10 +8,14 @@ Two sets of papers:
 - **Development set** (`papers.json`, `labels.json`): 22 papers (20 from arXiv, 2 from PLOS),
   104 flags. Six papers produce no flags.
 - **Held-out set** (`heldout_papers.json`, `heldout_labels.json`): 10 further arXiv papers,
-  74 flags, reviewed later and never used to change the tool.
+  74 flags, reviewed later. It was not used to tune the tool, but the two fixes below were
+  found partly by studying its false alarms.
+- **Fresh set** (`fresh_papers.json`, `fresh_removed_labels.json`): 10 more arXiv papers, used
+  only to test the two fixes below.
 
 `collect_flags.py` downloads the papers and re-collects the flags (`--heldout` for the second
-set). Both sets reproduce exactly against the code at the commit that added this folder.
+set, `--fresh` for the third). Both labelled sets reproduce exactly against the code at the commit
+that added this folder; with the two fixes below, they give the reduced counts in "Two fixes".
 
 ## Method
 
@@ -71,3 +75,34 @@ On the development set this cut false alarms from 21% to 6%. On the held-out set
 nothing (22% before, 24% after), and the re-tuned priority made HIGH flags less useful (6% worth a
 look before, 0% after). Those changes were fitted to the development papers, so they were not
 adopted. The held-out set is what made that visible, and it is why it is kept separate.
+
+## Two fixes
+
+Two causes explain most false alarms, and each has a narrow fix:
+
+1. **A "winner" with nothing to beat.** The "best method changes" check counted a winner at a
+   level even when only one entry had a value there. This happens when a score column is read as
+   an axis, when row labels are garbled, or on a table of example responses. A winner now counts
+   only when at least two entries compete at that level.
+2. **Model sizes read as results.** In a column of model sizes (7B, 30B, 937M), the largest one
+   always stands out. Outlier flags on such a column are no longer reported. The column is
+   recognized when every number in it ends in M or B and its header names parameters or is
+   blank. Duplicate and flatness checks still run on it, since identical sizes can be a
+   copy-paste error.
+
+Both fixes only remove flags; they never add one. Effect on the labelled sets:
+
+| set | flags | false alarm | real, explained | real, worth a look |
+|---|---|---|---|---|
+| development, before | 104 | 22 | 55 | 27 |
+| development, after | 83 | 5 | 51 | 27 |
+| held-out, before | 74 | 16 | 48 | 10 |
+| held-out, after | 57 | 4 | 43 | 10 |
+
+No flag labelled worth a look was removed.
+
+Both fixes were found by studying the labelled flags, so they were then tested on a third set of
+10 arXiv papers never used before (`fresh_papers.json`). There they removed 18 of 56 flags and
+added none. `fresh_removed_labels.json` records a hand check of the 18 against the PDFs: 14 false
+alarms and 4 explained (largest model size), none worth a look. The 38 flags that remain on this
+set have not been labelled.

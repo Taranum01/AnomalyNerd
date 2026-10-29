@@ -70,3 +70,17 @@ def test_bracketed_interval_column_is_numeric(tmp_path):
 def test_metric_direction_from_name(tmp_path, name, lower):
     t = read_csv(write(tmp_path, ['method', name], [['A', 1.5], ['B', 2.5], ['C', 3.5]]))
     assert t.lower_is_better is lower
+
+@pytest.mark.parametrize('header,values,expected', [
+    ('col1', ['7B', '30B', '7B', '40B', '70B'], True),
+    ('#param.', ['28M', '50M', '89M', '197M', '937M'], True),
+    ('params', ['86 M', '304 M', '632 M', '6801 M'], True),
+    ('col1', ['7B', '30B', '-', '70B'], True),
+    ('Params', ['7B', '13B', '65.3', '70B'], False),
+    ('Accuracy', ['7B', '30B', '65B'], False),
+    ('col2', ['18.3', '25.0', '0.6', '29.9'], False)])
+def test_param_count_column(tmp_path, header, values, expected):
+    from anomalynerd.analyze_pdf import _is_param_count_column
+    rows = [[f'm{i}', v] for i, v in enumerate(values)]
+    t = read_csv(write(tmp_path, ['method', header], rows), metric_col=header)
+    assert _is_param_count_column(t) is expected

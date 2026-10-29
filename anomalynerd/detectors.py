@@ -253,6 +253,9 @@ def detect_win_reversals(t: TidyTable, tie_eps=0.02, min_points=3):
                         scored.append((e, v))
                 if not scored:
                     winners.append(None); continue
+                if len(scored) < 2:
+                    # one entry at this level: nothing to compete with, so no winner
+                    winners.append(None); continue
                 scored.sort(key=lambda x: x[1], reverse=not t.lower_is_better)
                 best_v = scored[0][1]
                 # tie guard: if 2nd within eps, still take best but note

@@ -63,6 +63,17 @@ def test_cat_exception():
     assert any(f.type=="cat_exception" for f in flags), "the one c4 exception should flag"
     print("  OK cat_exception")
 
+def test_no_win_reversal_when_one_entry_per_level():
+    # each method has its own axis value (a score column read as an axis): no contest
+    rows = [{"cola": c, "method": m, "value": v}
+            for c, m, v in [(60.5, "A", 80.5), (67.8, "B", 88.1), (69.1, "C", 89.0),
+                            (70.2, "D", 89.1), (71.7, "E", 89.4)]]
+    t = TidyTable("one_per_level", {"cola": Axis("cola", "numeric"),
+                                    "method": Axis("method", "unordered_cat")},
+                  entity_axis="method", metric_name="score", lower_is_better=False, rows=rows)
+    from anomalynerd.detectors import detect_win_reversals
+    assert detect_win_reversals(t) == []
+
 if __name__ == "__main__":
     test_numeric_jump_and_win_reversal()
     test_duplicate_and_flatness()
