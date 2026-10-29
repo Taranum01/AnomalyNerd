@@ -62,3 +62,11 @@ def test_bracketed_interval_column_is_numeric(tmp_path):
     t = read_csv(p, metric_col='accuracy')
     assert [r['value'] for r in t.rows] == [0.91, 0.87, 0.84]
     assert [r['_raw'] for r in t.rows][0] == '0.91 [0.88, 0.94]'
+
+@pytest.mark.parametrize('name,lower', [
+    ('Human-Eval.pass@1', False), ('TruthfulQA ↑', False), ('ToxiGen ↓', True),
+    ('BLEU', False), ('ROUGE-L', False), ('Top-1 err.', True), ('Top-1 Acc.', False),
+    ('ELI5 PPL', True), ('Sentiment accuracy', False), ('RMSE', True), ('CoLA', True)])
+def test_metric_direction_from_name(tmp_path, name, lower):
+    t = read_csv(write(tmp_path, ['method', name], [['A', 1.5], ['B', 2.5], ['C', 3.5]]))
+    assert t.lower_is_better is lower

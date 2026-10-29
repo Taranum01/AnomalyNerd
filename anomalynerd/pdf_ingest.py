@@ -504,6 +504,7 @@ def parse_pdf(path: str) -> PdfParse:
                 t.status = "skipped"
                 t.reason = ("a results table was detected but it is merged with surrounding "
                             "text and the layout model could not isolate it; not analyzed")
+        _unique_docling_indices(tables)
 
     if not tables:
         notes.append("no tables were detected in this PDF; if the paper has tables, "
@@ -561,23 +562,50 @@ def _try_docling(path: str):
             _os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = _prev_fallback
     out = []
     skipped_tables = 0
+    per_page = {}
     for tb in getattr(doc, "tables", []):
         raw = _docling_table_to_rows(tb, doc)
         if raw is None or len(raw) < 2:
             skipped_tables += 1
             continue
-        et = _assess_and_tidy(raw, 0, len(out))
+        page = _docling_page(tb)
+        et = _assess_and_tidy(raw, page, per_page.get(page, 0))
         et.backend = "docling"
         if et.status in ("ok", "partial"):
             if "recovered by the Docling layout-model fallback" not in (et.reason or ""):
                 et.caveats.append("recovered by the Docling layout-model fallback")
             out.append(et)
+            per_page[page] = per_page.get(page, 0) + 1
     note = None
     if not out:
         note = "the Docling fallback ran but still produced no usable results table"
         if skipped_tables:
             note += f" ({skipped_tables} table(s) could not be exported)"
     return out, note
+
+
+def _unique_docling_indices(tables):
+    """Give each layout-model table an index that no other table on its page uses, so
+    (page, index) stays a unique key once Docling tables carry their real page number."""
+    used = {}
+    for t in tables:
+        if getattr(t, "backend", "") != "docling":
+            used.setdefault(t.page, set()).add(t.index_on_page)
+    for t in tables:
+        if getattr(t, "backend", "") != "docling":
+            continue
+        taken = used.setdefault(t.page, set())
+        if t.index_on_page in taken:
+            t.index_on_page = max(taken) + 1
+        taken.add(t.index_on_page)
+
+
+def _docling_page(tb):
+    """1-based PDF page of a Docling table from its provenance, or 0 if Docling gives none."""
+    try:
+        return int(tb.prov[0].page_no)
+    except (AttributeError, IndexError, TypeError, ValueError):
+        return 0
 
 
 def _docling_table_to_rows(tb, doc):

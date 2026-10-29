@@ -19,6 +19,10 @@ _METRIC_WORDS = ("rmse", "mae", "mse", "error", "err", "loss", "accuracy", "acc"
                  "score", "auc", "f1", "precision", "recall", "value", "runtime",
                  "time", "latency")
 _LOWER_BETTER = ("rmse", "mae", "mse", "error", "err", "loss", "runtime", "time", "latency")
+# Whole-word metric names for direction inference (matched against the name's words).
+_LOWER_BETTER_WORDS = set(_LOWER_BETTER) | {"errors", "ppl", "perplexity", "wer", "cer", "fid"}
+_HIGHER_BETTER_SUBSTR = ("accuracy", "acc", "auc", "f1", "precision", "recall", "score")
+_HIGHER_BETTER_WORDS = {"bleu", "rouge", "pass", "top", "map", "miou", "iou", "em"}
 _MISSING_TOKENS = {"", "--", "-", "n/a", "na", "nan", "none", "null"}
 
 _ORDER_LEXICON = [
@@ -255,9 +259,26 @@ def read_csv(path, metric_col=None, entity_col=None, lower_is_better=None,
         axes[c] = ax
     lib = lower_is_better
     if lib is None:
-        lib = not any(w in mcol.lower() for w in ("accuracy", "acc", "auc", "f1", "precision", "recall", "score"))
+        lib = _infer_lower_is_better(mcol)
     return TidyTable(name, axes, entity_axis=ecol, metric_name=mcol,
                      lower_is_better=lib, rows=rows)
+
+
+def _infer_lower_is_better(name):
+    """Guess the metric direction from its column name: an explicit arrow wins, then error-type
+    words (loss, error, perplexity), then score-type words (accuracy, BLEU, pass@k); a name
+    with none of these keeps the old default of lower-is-better."""
+    if "↑" in name:
+        return False
+    if "↓" in name:
+        return True
+    low = name.lower()
+    words = set(re.findall(r"[a-z]+", low))
+    if words & _LOWER_BETTER_WORDS:
+        return True
+    if any(w in low for w in _HIGHER_BETTER_SUBSTR) or words & _HIGHER_BETTER_WORDS:
+        return False
+    return True
 
 
 def _median_scale(values):

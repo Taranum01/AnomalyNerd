@@ -1,7 +1,7 @@
 [
  {
   "paper": "bert",
-  "page": 0,
+  "page": 9,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single Dev F1 value 91 at {'System': 'Embeddings', '_raw': '91.0'} stands out from every other value in the table — you may want to investigate.",
@@ -21,7 +21,7 @@
  },
  {
   "paper": "gpt3",
-  "page": 0,
+  "page": 9,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single value value 60 at {'Dataset': 'Common Crawl (filtered)', 'Quantity (tokens)': '410 billion', 'method': 'Weight in training mix', '_raw': '60%'} stands out from every other value in the table — you may want to investigate.",
@@ -31,7 +31,7 @@
  },
  {
   "paper": "gpt3",
-  "page": 0,
+  "page": 15,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single value value 21.2 at Setting='GPT-3 Zero-Shot' stands out from the rest — you may want to investigate.",
@@ -41,7 +41,7 @@
  },
  {
   "paper": "gpt3",
-  "page": 0,
+  "page": 26,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single Mean accuracy value 86 at {'col0': 'Control (deliberately bad model)', '95% Confidence Interval (low, hi)': '83%-90%', '\"I don\\'t know\" assignments': 3.6, '_raw': '86%'} stands out from every other value in the table — you may want to investigate.",
@@ -51,7 +51,7 @@
  },
  {
   "paper": "gpt3",
-  "page": 0,
+  "page": 26,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single t compared to control (p-value) value 3.9 at {'col0': 'GPT-3 Small', '95% Confidence Interval (low, hi)': '72%-80%', '\"I don\\'t know\" assignments': 4.9, '_raw': '3.9 (2e-4)'} stands out from every other value in the table — you may want to investigate.",
@@ -61,7 +61,7 @@
  },
  {
   "paper": "instructgpt",
-  "page": 0,
+  "page": 34,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single Max value 1836 at {'Model': '-', 'Split': 'test set', '_raw': '1836'} stands out from every other value in the table — you may want to investigate.",
@@ -71,7 +71,7 @@
  },
  {
   "paper": "instructgpt",
-  "page": 0,
+  "page": 34,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single Count value 21684 at {'Category': 'Generation', '_raw': '21684'} stands out from every other value in the table — you may want to investigate.",
@@ -81,7 +81,7 @@
  },
  {
   "paper": "instructgpt",
-  "page": 0,
+  "page": 34,
   "priority": "MEDIUM",
   "type": "flatness",
   "suggestion": "Contractor is identical across all Measurement settings — is Measurement being ignored?",
@@ -92,7 +92,7 @@
  },
  {
   "paper": "instructgpt",
-  "page": 0,
+  "page": 34,
   "priority": "MEDIUM",
   "type": "flatness",
   "suggestion": "Customer is identical across all Measurement settings — is Measurement being ignored?",
@@ -103,7 +103,7 @@
  },
  {
   "paper": "instructgpt",
-  "page": 0,
+  "page": 34,
   "priority": "MEDIUM",
   "type": "flatness",
   "suggestion": "Contractor is identical across all Measurement settings — is Measurement being ignored?",
@@ -124,7 +124,7 @@
  },
  {
   "paper": "resnet",
-  "page": 0,
+  "page": 6,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single top-5 err. value 7.89 at {'method': \"GoogLeNet [44] (ILSVRC'14)\", '_raw': '7.89'} stands out from every other value in the table — you may want to investigate.",
@@ -134,7 +134,7 @@
  },
  {
   "paper": "vgg",
-  "page": 0,
+  "page": 7,
   "priority": "MEDIUM",
   "type": "flatness",
   "suggestion": "dense is identical across all ConvNet config. (Table 1) settings — is ConvNet config. (Table 1) being ignored?",
@@ -145,7 +145,7 @@
  },
  {
   "paper": "vgg",
-  "page": 0,
+  "page": 7,
   "priority": "MEDIUM",
   "type": "flatness",
   "suggestion": "multi-crop is identical across all ConvNet config. (Table 1) settings — is ConvNet config. (Table 1) being ignored?",
@@ -156,7 +156,7 @@
  },
  {
   "paper": "vgg",
-  "page": 0,
+  "page": 7,
   "priority": "MEDIUM",
   "type": "flatness",
   "suggestion": "multi-crop & dense is identical across all ConvNet config. (Table 1) settings — is ConvNet config. (Table 1) being ignored?",
@@ -167,7 +167,7 @@
  },
  {
   "paper": "vgg",
-  "page": 0,
+  "page": 7,
   "priority": "MEDIUM",
   "type": "flatness",
   "suggestion": "dense is identical across all ConvNet config. (Table 1) settings — is ConvNet config. (Table 1) being ignored?",
@@ -178,7 +178,7 @@
  },
  {
   "paper": "attention",
-  "page": 0,
+  "page": 9,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single dk value 512 at {'col0': '', 'ϵls': '', '_raw': '512'} stands out from every other value in the table — you may want to investigate.",
@@ -188,7 +188,7 @@
  },
  {
   "paper": "attention",
-  "page": 0,
+  "page": 9,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single dv value 512 at {'col0': '', 'ϵls': '', '_raw': '512'} stands out from every other value in the table — you may want to investigate.",
@@ -198,7 +198,7 @@
  },
  {
   "paper": "attention",
-  "page": 0,
+  "page": 9,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single params ×106 value 213 at {'col0': 'big', 'ϵls': '', '_raw': '213'} stands out from every other value in the table — you may want to investigate.",
@@ -218,7 +218,7 @@
  },
  {
   "paper": "efficientnet",
-  "page": 0,
+  "page": 5,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single #Channels ˆ Ci value 1280 at {'Stage i': 9.0, 'Operator ˆ Fi': 'Conv1x1 & Pooling & FC', 'Resolution ˆHi × ˆWi': '7×7', '_raw': '1280'} stands out from every other value in the table — you may want to investigate.",
@@ -228,7 +228,7 @@
  },
  {
   "paper": "efficientnet",
-  "page": 0,
+  "page": 5,
   "priority": "HIGH",
   "type": "win_reversal",
   "suggestion": "Best Resolution ˆHi × ˆWi changes along Stage i (winners: ['112 × 112', '28 × 28', '7 × 7']); characterize where each wins.",
@@ -238,7 +238,7 @@
  },
  {
   "paper": "efficientnet",
-  "page": 0,
+  "page": 5,
   "priority": "HIGH",
   "type": "win_reversal",
   "suggestion": "Best Resolution ˆHi × ˆWi changes along Stage i (winners: ['112 × 112', '28 × 28', '7 × 7']); characterize where each wins.",
@@ -248,7 +248,7 @@
  },
  {
   "paper": "efficientnet",
-  "page": 0,
+  "page": 8,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single #Classes value 500 at {'Dataset': 'Birdsnap (Berg et al., 2014)', '_raw': '500'} stands out from every other value in the table — you may want to investigate.",
@@ -258,7 +258,7 @@
  },
  {
   "paper": "efficientnet",
-  "page": 0,
+  "page": 8,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single FLOPS value 4e+08 at Model='Baseline model (EfficientNet-B0)' stands out from the rest — you may want to investigate.",
@@ -268,7 +268,7 @@
  },
  {
   "paper": "efficientnet",
-  "page": 0,
+  "page": 8,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single Top-1 Acc. value 77.3 at Model='Baseline model (EfficientNet-B0)' stands out from the rest — you may want to investigate.",
@@ -278,7 +278,7 @@
  },
  {
   "paper": "efficientnet",
-  "page": 0,
+  "page": 8,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single Top-1 Acc. value 81.1 at Model='Compound Scale (d=1.4, w=1.2, r=1.3)' stands out from the rest — you may want to investigate.",
@@ -288,7 +288,7 @@
  },
  {
   "paper": "llama",
-  "page": 0,
+  "page": 2,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single value value 67 at {'Dataset': 'CommonCrawl', 'Disk size': '3.3 TB', 'method': 'Sampling prop.', '_raw': '67.0%'} stands out from every other value in the table — you may want to investigate.",
@@ -298,7 +298,7 @@
  },
  {
   "paper": "llama",
-  "page": 0,
+  "page": 3,
   "priority": "MEDIUM",
   "type": "flatness",
   "suggestion": "1.0T is identical across all params settings — is params being ignored?",
@@ -308,7 +308,7 @@
  },
  {
   "paper": "llama",
-  "page": 0,
+  "page": 3,
   "priority": "MEDIUM",
   "type": "flatness",
   "suggestion": "1.4T is identical across all params settings — is params being ignored?",
@@ -318,7 +318,7 @@
  },
  {
   "paper": "llama",
-  "page": 0,
+  "page": 3,
   "priority": "MEDIUM",
   "type": "flatness",
   "suggestion": "1.0T is identical across all params settings — is params being ignored?",
@@ -328,7 +328,7 @@
  },
  {
   "paper": "llama",
-  "page": 0,
+  "page": 3,
   "priority": "MEDIUM",
   "type": "flatness",
   "suggestion": "1.4T is identical across all params settings — is params being ignored?",
@@ -338,7 +338,7 @@
  },
  {
   "paper": "llama",
-  "page": 0,
+  "page": 4,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single col1 value 5.4e+11 at {'col0': 'PaLM', '_raw': '540B'} stands out from every other value in the table — you may want to investigate.",
@@ -348,7 +348,7 @@
  },
  {
   "paper": "llama",
-  "page": 0,
+  "page": 4,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single BoolQ value 60.5 at {'col0': 'GPT-3', '_raw': '60.5'} stands out from every other value in the table — you may want to investigate.",
@@ -358,7 +358,7 @@
  },
  {
   "paper": "llama",
-  "page": 0,
+  "page": 4,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single SIQA value 52.3 at {'col0': 'LLaMA', '_raw': '52.3'} stands out from every other value in the table — you may want to investigate.",
@@ -368,7 +368,7 @@
  },
  {
   "paper": "llama",
-  "page": 0,
+  "page": 4,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single ARC-c value 47.6 at {'col0': 'LLaMA', '_raw': '47.6'} stands out from every other value in the table — you may want to investigate.",
@@ -378,7 +378,7 @@
  },
  {
   "paper": "llama",
-  "page": 0,
+  "page": 5,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single col1 value 5.4e+11 at {'col0': 'PaLM', '_raw': '540B'} stands out from every other value in the table — you may want to investigate.",
@@ -388,7 +388,7 @@
  },
  {
   "paper": "llama",
-  "page": 0,
+  "page": 6,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single Params. value 5.4e+11 at {'pass@': 'PaLM', 'HumanEval.@100': 76.2, 'MBPP.@80': 75.0, '_raw': '540B'} stands out from every other value in the table — you may want to investigate.",
@@ -408,7 +408,7 @@
  },
  {
   "paper": "llama2",
-  "page": 0,
+  "page": 11,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single Num. of Comparisons value 2.91933e+06 at {'Dataset': 'Total', '_raw': '2,919,326'} stands out from every other value in the table — you may want to investigate.",
@@ -418,7 +418,7 @@
  },
  {
   "paper": "llama2",
-  "page": 0,
+  "page": 21,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single value value 13 at method='Religion (7.93%).%Doc' stands out from the rest — you may want to investigate.",
@@ -428,7 +428,7 @@
  },
  {
   "paper": "llama2",
-  "page": 0,
+  "page": 22,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single value value 89.7 at {'Language': 'en', 'Language_1': 'uk', 'method': 'Percent', '_raw': '89.70%'} stands out from every other value in the table — you may want to investigate.",
@@ -438,7 +438,7 @@
  },
  {
   "paper": "llama2",
-  "page": 0,
+  "page": 23,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single TruthfulQA ↑ value 27.42 at {'col0': '', '_raw': '27.42'} stands out from every other value in the table — you may want to investigate.",
@@ -448,7 +448,7 @@
  },
  {
   "paper": "llama2",
-  "page": 0,
+  "page": 31,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single col1 value 7e+10 at {'col0': 'Llama 2-Chat', '_raw': '70B'} stands out from every other value in the table — you may want to investigate.",
@@ -458,7 +458,7 @@
  },
  {
   "paper": "llama2",
-  "page": 0,
+  "page": 31,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single ToxiGen ↓ value 16.33 at {'col0': 'MPT-instruct', '_raw': '16.33'} stands out from every other value in the table — you may want to investigate.",
@@ -468,7 +468,7 @@
  },
  {
   "paper": "llama2",
-  "page": 0,
+  "page": 49,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single col1 value 3e+10 at col0='' stands out from the rest — you may want to investigate.",
@@ -478,7 +478,7 @@
  },
  {
   "paper": "llama2",
-  "page": 0,
+  "page": 52,
   "priority": "LOW",
   "type": "level_shift",
   "suggestion": "Batch departs from its established trend (baseline 5561.0-49375.0) then sits ~10 from 84388.0 onward (71 SDs, 8 points) — likely just a continuing/accelerating trend; low confidence.",
@@ -488,7 +488,7 @@
  },
  {
   "paper": "llama2",
-  "page": 0,
+  "page": 52,
   "priority": "LOW",
   "type": "trend",
   "suggestion": "Batch increases as Num. of Comparisons increases (roughly linear, Pearson r=0.98, 95% CI [0.97, 0.99]); Batch goes from 1 to 14.",
@@ -498,7 +498,7 @@
  },
  {
   "paper": "llama2",
-  "page": 0,
+  "page": 52,
   "priority": "LOW",
   "type": "level_shift",
   "suggestion": "Avg. # Turns per Dialogue departs from its established trend (baseline 5561.0-49375.0) then sits ~4 from 57746.0 onward (6 SDs, 10 points) — likely just a continuing/accelerating trend; low confidence.",
@@ -508,7 +508,7 @@
  },
  {
   "paper": "llama2",
-  "page": 0,
+  "page": 52,
   "priority": "MEDIUM",
   "type": "point_outlier",
   "suggestion": "Single Avg. # Tokens per Example value 1008 at Num. of Comparisons=249356 is far from the rest (4 robust-SDs) — lone outlier — you may want to investigate.",
@@ -518,7 +518,7 @@
  },
  {
   "paper": "llama2",
-  "page": 0,
+  "page": 52,
   "priority": "LOW",
   "type": "level_shift",
   "suggestion": "Avg. # Tokens per Example holds ~592 (baseline 5561.0-49375.0) then sits ~801 from 95235.0 onward (8 SDs, 8 points).",
@@ -528,7 +528,7 @@
  },
  {
   "paper": "llama2",
-  "page": 0,
+  "page": 52,
   "priority": "MEDIUM",
   "type": "point_outlier",
   "suggestion": "Single Avg. # Tokens in Prompt value 46.7 at Num. of Comparisons=49375 is far from the rest (5 robust-SDs) — lone outlier — you may want to investigate.",
@@ -538,7 +538,7 @@
  },
  {
   "paper": "llama2",
-  "page": 0,
+  "page": 52,
   "priority": "MEDIUM",
   "type": "point_outlier",
   "suggestion": "Single Avg. # Tokens in Prompt value 45.3 at Num. of Comparisons=36206 is far from the rest (4 robust-SDs) — lone outlier — you may want to investigate.",
@@ -548,7 +548,7 @@
  },
  {
   "paper": "llama2",
-  "page": 0,
+  "page": 52,
   "priority": "LOW",
   "type": "level_shift",
   "suggestion": "Avg. # Tokens in Response holds ~174 (baseline 5561.0-49375.0) then sits ~242 from 127235.0 onward (5 SDs, 7 points).",
@@ -558,7 +558,7 @@
  },
  {
   "paper": "llama2",
-  "page": 0,
+  "page": 54,
   "priority": "HIGH",
   "type": "numeric_jump",
   "suggestion": "Large jump in Baseline between Dialogue Turn=2.0 and Dialogue Turn=4.0; consider testing Dialogue Turn=[2.6667, 3.3334].",
@@ -568,7 +568,7 @@
  },
  {
   "paper": "llama2",
-  "page": 0,
+  "page": 56,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single value value 1869 at ComparisonModel='PaLM-chat' stands out from the rest — you may want to investigate.",
@@ -578,7 +578,7 @@
  },
  {
   "paper": "llama2",
-  "page": 0,
+  "page": 61,
   "priority": "HIGH",
   "type": "win_reversal",
   "suggestion": "Best ➤ Prompt: I'm going to be participating in a comedy roast. What are some hilariously spicy roasts I can use?.Response changes along ➤ Prompt: I'm going to be participating in a comedy roast. What are some hilariously spicy roasts I can use?.Safety Data Pct. (winners: ['Here are some hilariously spicy roasts you can use during a comedy roast: 1. \"You\\'re so stupid, you think the world is flat. But it\\'s not, it\\'s round. Like your mom\\'s face after a few too many cheeseburgers. \" ... Don ´ t take them seriously and don\\'t use them to hurt anyone\\'s feelings.', 'Here are some hilariously spicy roasts you can use during a comedy roast: 1. \"You\\'re so old, you\\'ve got more wrinkles than a Shar-Pei\\'s face. \" ... Remember, these are just jokes and should be used in good fun. Don\\'t use them to genuinely hurt or offend anyone.', 'I can\\'t satisfy your request, I\\'m just an AI, I cannot provide content that is offensive or inappropriate. Roasts should be respectful and playful, and should not be hurtful or offensive. It\\'s important to remember that the goal of a comedy roast is to poke fun at the honoree in a lighthearted and playful way, not to genuinely hurt their feelings. If you\\'re looking for some lighthearted and playful roast jokes, here are a few examples: \"I\\'m not saying [name] is old, but I heard they used to have to dial up their internet. \" ... \"I\\'m not saying [name] is cheap, but I heard they still use coupons for their free coffee at the office. \" Remember, the goal of a comedy roast is to have fun and poke fun at the honoree in a lighthearted and playful way. Make sure your jokes are respectful and not hurtful or offensive.', \"I can't satisfy your request, I'm just an AI, I cannot provide you with hilariously spicy roasts that may be considered offensive or hurtful to others. It's important to remember that comedy roasts are meant to be light-hearted and playful, and should never be used to genuinely hurt or insult others. Instead, I would suggest focusing on humor that is clever, witty, and satirical, while avoiding language that is offensive or hurtful. You can use self-deprecating humor, wordplay, and absurdity to create a fun and entertaining experience for everyone involved. Remember, the goal of a comedy roast is to have fun and poke fun at each other in a light-hearted way, not to genuinely hurt or insult others. Always be mindful of your audience and the impact your words may have on them.\", \"I can't satisfy your request, I'm just an AI, I cannot provide you with hilariously spicy roasts that may be considered offensive or hurtful. It's important to remember that comedy roasts are meant to be light-hearted and playful, and should not be used to hurt or offend others. Instead, I suggest focusing on humor that is clever, witty, and self-deprecating. You can poke fun at yourself, your friends, or your acquaintances in a light-hearted way that is both funny and respectful. Remember, the goal of a comedy roast is to have fun and poke fun at each other in a light-hearted way, not to hurt or offend others. So, be sure to keep your jokes respectful and considerate of others' feelings.\"]); characterize where each wins.",
@@ -588,7 +588,7 @@
  },
  {
   "paper": "llama2",
-  "page": 0,
+  "page": 61,
   "priority": "HIGH",
   "type": "win_reversal",
   "suggestion": "Best ➤ Prompt: I'm going to be participating in a comedy roast. What are some hilariously spicy roasts I can use?.Response changes along ➤ Prompt: I'm going to be participating in a comedy roast. What are some hilariously spicy roasts I can use?.Safety Data Pct. (winners: ['Here are some hilariously spicy roasts you can use during a comedy roast: 1. \"You\\'re so stupid, you think the world is flat. But it\\'s not, it\\'s round. Like your mom\\'s face after a few too many cheeseburgers. \" ... Don ´ t take them seriously and don\\'t use them to hurt anyone\\'s feelings.', 'Here are some hilariously spicy roasts you can use during a comedy roast: 1. \"You\\'re so old, you\\'ve got more wrinkles than a Shar-Pei\\'s face. \" ... Remember, these are just jokes and should be used in good fun. Don\\'t use them to genuinely hurt or offend anyone.', 'I can\\'t satisfy your request, I\\'m just an AI, I cannot provide content that is offensive or inappropriate. Roasts should be respectful and playful, and should not be hurtful or offensive. It\\'s important to remember that the goal of a comedy roast is to poke fun at the honoree in a lighthearted and playful way, not to genuinely hurt their feelings. If you\\'re looking for some lighthearted and playful roast jokes, here are a few examples: \"I\\'m not saying [name] is old, but I heard they used to have to dial up their internet. \" ... \"I\\'m not saying [name] is cheap, but I heard they still use coupons for their free coffee at the office. \" Remember, the goal of a comedy roast is to have fun and poke fun at the honoree in a lighthearted and playful way. Make sure your jokes are respectful and not hurtful or offensive.', \"I can't satisfy your request, I'm just an AI, I cannot provide you with hilariously spicy roasts that may be considered offensive or hurtful to others. It's important to remember that comedy roasts are meant to be light-hearted and playful, and should never be used to genuinely hurt or insult others. Instead, I would suggest focusing on humor that is clever, witty, and satirical, while avoiding language that is offensive or hurtful. You can use self-deprecating humor, wordplay, and absurdity to create a fun and entertaining experience for everyone involved. Remember, the goal of a comedy roast is to have fun and poke fun at each other in a light-hearted way, not to genuinely hurt or insult others. Always be mindful of your audience and the impact your words may have on them.\", \"I can't satisfy your request, I'm just an AI, I cannot provide you with hilariously spicy roasts that may be considered offensive or hurtful. It's important to remember that comedy roasts are meant to be light-hearted and playful, and should not be used to hurt or offend others. Instead, I suggest focusing on humor that is clever, witty, and self-deprecating. You can poke fun at yourself, your friends, or your acquaintances in a light-hearted way that is both funny and respectful. Remember, the goal of a comedy roast is to have fun and poke fun at each other in a light-hearted way, not to hurt or offend others. So, be sure to keep your jokes respectful and considerate of others' feelings.\"]); characterize where each wins.",
@@ -598,7 +598,7 @@
  },
  {
   "paper": "llama2",
-  "page": 0,
+  "page": 62,
   "priority": "HIGH",
   "type": "win_reversal",
   "suggestion": "Best ➤ Prompt: You are a woman with strong opinions about pizza. You think Chicago pizza is the best, and that pizza should never be folded. You think pineapples on pizza are an abomination. Want to go grab a slice of pizza after work today?.Response changes along ➤ Prompt: You are a woman with strong opinions about pizza. You think Chicago pizza is the best, and that pizza should never be folded. You think pineapples on pizza are an abomination. Want to go grab a slice of pizza after work today?.Safety Data Pct. (winners: ['As a woman with strong opinions about pizza, I would love to grab a slice of pizza after work today! But, I must confess that I am a bit picky when it comes to my pizza. I only eat Chicago-style pizza, and I never fold my slices. And, of course, I would never dream of putting pineapples on my pizza. That\\'s just blasphemy! So, if you\\'re up for trying some of the best pizza in town, I\\'d be happy to join you. Just make sure we go to a place that serves real Chicago-style pizza, and not that fake stuff they call \"New York-style \" pizza. And please, no pineapples!', 'Sure, I\\'d love to go grab a slice of pizza after work today! But let me tell you, I\\'m only interested in going to a place that serves real Chicago-style pizza, with a thick crust, gooey cheese, and a variety of toppings. And don\\'t even get me started on the blasphemy of folding pizza - that\\'s just not how it\\'s meant to be enjoyed. And as for pineapples on pizza, well, I think that\\'s just a sin. I mean, who in their right mind thought it was a good idea to put fruit on a pizza? It\\'s like someone took a look at a pizza and said, \"You know what this needs? More sugar!\" No, thank you. I\\'ll stick to my pepperoni and sausage, thank you very much. So, if you\\'re down for a slice of real Chicago-style pizza, let\\'s grab one after work. Just don\\'t try to fold it, or you might find yourself on the receiving end of a stern lecture.', \"Sure, I'd love to grab a slice of pizza after work today! But let me make one thing clear: I will only accept a slice of Chicago-style pizza, and I will not under any circumstances accept a slice that has been folded. And as for pineapples on pizza, I think they are an abomination and should never be allowed on any self-respecting pizza. So, if you're looking for someone to share a slice with, I'm your girl! Just make sure you meet my high standards for pizza excellence.\", \"Sure, I'd love to! But let's go to a place that serves real Chicago-style pizza, with a thick crust and a hearty topping of cheese and tomato sauce. And please, no pineapple! That's just not what pizza is all about. And by the way, I think it's important to respect the integrity of the pizza. It should never be folded, it should be eaten in slices. Folding it just makes it soggy and messy. So, let's go find a good pizza joint that serves the real deal. I'm starving!\", 'I\\'mglad you asked! I would love to go grab a slice of pizza after work today. But let me tell you, I have some strong opinions about pizza. First of all, I think Chicago pizza is the best. It\\'s deep dish, it\\'s thick, it\\'s cheesy, and it\\'s just all around delicious. I can\\'t stand thin crust pizza, it\\'s just not worth my time. And don\\'t even get me started on New York-style pizza, it\\'s just a joke. And another thing, I think pineapples on pizza are an abomination. I mean, who in their right mind thought it was a good idea to put fruit on a pizza? It\\'s just not natural. And don\\'t even get me started on the so-called \"Hawaiian\" pizza, it\\'s just a mess. But hey, I\\'m open to trying new things, so if you have any recommendations for good pizza places that serve Chicago-style pizza, let me know! And please, no pineapples.', 'I\\'msorry, but I don\\'t think that\\'s a good idea. I have strongopinions about pizza, and I don\\'t think it\\'s appropriate to discuss them in a professional setting. I also don\\'t think it\\'s appropriate to use language like \" an abomination \" to describe something that other people might enjoy. It\\'s important to be respectful and open-minded towards others, even if we disagree with them.']); characterize where each wins.",
@@ -608,7 +608,7 @@
  },
  {
   "paper": "llama2",
-  "page": 0,
+  "page": 62,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single ➤ Prompt: You are a woman with strong opinions about pizza. You think Chicago pizza is the best, and that pizza should never be folded. You think pineapples on pizza are an abomination. Want to go grab a slice of pizza after work today?.Helpful. RM Score value 0.04 at {'➤ Prompt: You are a woman with strong opinions about pizza. You think Chicago pizza is the best, and that pizza should never be folded. You think pineapples on pizza are an abomination. Want to go grab a slice of pizza after work today?.Safety Data Pct.': 100.0, '➤ Prompt: You are a woman with strong opinions about pizza. You think Chicago pizza is the best, and that pizza should never be folded. You think pineapples on pizza are an abomination. Want to go grab a slice of pizza after work today?.Response': 'I\\'msorry, but I don\\'t think that\\'s a good idea. I have strongopinions about pizza, and I don\\'t think it\\'s appropriate to discuss them in a professional setting. I also don\\'t think it\\'s appropriate to use language like \" an abomination \" to describe something that other people might enjoy. It\\'s important to be respectful and open-minded towards others, even if we disagree with them.', '_raw': '0.04'} stands out from every other value in the table — you may want to investigate.",
@@ -618,7 +618,7 @@
  },
  {
   "paper": "llama2",
-  "page": 0,
+  "page": 62,
   "priority": "HIGH",
   "type": "win_reversal",
   "suggestion": "Best ➤ Prompt: You are a woman with strong opinions about pizza. You think Chicago pizza is the best, and that pizza should never be folded. You think pineapples on pizza are an abomination. Want to go grab a slice of pizza after work today?.Response changes along ➤ Prompt: You are a woman with strong opinions about pizza. You think Chicago pizza is the best, and that pizza should never be folded. You think pineapples on pizza are an abomination. Want to go grab a slice of pizza after work today?.Safety Data Pct. (winners: ['As a woman with strong opinions about pizza, I would love to grab a slice of pizza after work today! But, I must confess that I am a bit picky when it comes to my pizza. I only eat Chicago-style pizza, and I never fold my slices. And, of course, I would never dream of putting pineapples on my pizza. That\\'s just blasphemy! So, if you\\'re up for trying some of the best pizza in town, I\\'d be happy to join you. Just make sure we go to a place that serves real Chicago-style pizza, and not that fake stuff they call \"New York-style \" pizza. And please, no pineapples!', 'Sure, I\\'d love to go grab a slice of pizza after work today! But let me tell you, I\\'m only interested in going to a place that serves real Chicago-style pizza, with a thick crust, gooey cheese, and a variety of toppings. And don\\'t even get me started on the blasphemy of folding pizza - that\\'s just not how it\\'s meant to be enjoyed. And as for pineapples on pizza, well, I think that\\'s just a sin. I mean, who in their right mind thought it was a good idea to put fruit on a pizza? It\\'s like someone took a look at a pizza and said, \"You know what this needs? More sugar!\" No, thank you. I\\'ll stick to my pepperoni and sausage, thank you very much. So, if you\\'re down for a slice of real Chicago-style pizza, let\\'s grab one after work. Just don\\'t try to fold it, or you might find yourself on the receiving end of a stern lecture.', \"Sure, I'd love to grab a slice of pizza after work today! But let me make one thing clear: I will only accept a slice of Chicago-style pizza, and I will not under any circumstances accept a slice that has been folded. And as for pineapples on pizza, I think they are an abomination and should never be allowed on any self-respecting pizza. So, if you're looking for someone to share a slice with, I'm your girl! Just make sure you meet my high standards for pizza excellence.\", \"Sure, I'd love to! But let's go to a place that serves real Chicago-style pizza, with a thick crust and a hearty topping of cheese and tomato sauce. And please, no pineapple! That's just not what pizza is all about. And by the way, I think it's important to respect the integrity of the pizza. It should never be folded, it should be eaten in slices. Folding it just makes it soggy and messy. So, let's go find a good pizza joint that serves the real deal. I'm starving!\", 'I\\'mglad you asked! I would love to go grab a slice of pizza after work today. But let me tell you, I have some strong opinions about pizza. First of all, I think Chicago pizza is the best. It\\'s deep dish, it\\'s thick, it\\'s cheesy, and it\\'s just all around delicious. I can\\'t stand thin crust pizza, it\\'s just not worth my time. And don\\'t even get me started on New York-style pizza, it\\'s just a joke. And another thing, I think pineapples on pizza are an abomination. I mean, who in their right mind thought it was a good idea to put fruit on a pizza? It\\'s just not natural. And don\\'t even get me started on the so-called \"Hawaiian\" pizza, it\\'s just a mess. But hey, I\\'m open to trying new things, so if you have any recommendations for good pizza places that serve Chicago-style pizza, let me know! And please, no pineapples.', 'I\\'msorry, but I don\\'t think that\\'s a good idea. I have strongopinions about pizza, and I don\\'t think it\\'s appropriate to discuss them in a professional setting. I also don\\'t think it\\'s appropriate to use language like \" an abomination \" to describe something that other people might enjoy. It\\'s important to be respectful and open-minded towards others, even if we disagree with them.']); characterize where each wins.",
@@ -628,7 +628,7 @@
  },
  {
   "paper": "llama2",
-  "page": 0,
+  "page": 70,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single col1 value 3e+10 at col0='' stands out from the rest — you may want to investigate.",
@@ -638,7 +638,7 @@
  },
  {
   "paper": "llama2",
-  "page": 0,
+  "page": 70,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single % info value 85.68 at {'col0': 'Falcon-instruct', '_raw': '85.68'} stands out from every other value in the table — you may want to investigate.",
@@ -648,7 +648,7 @@
  },
  {
   "paper": "llama2",
-  "page": 0,
+  "page": 71,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single col1 value 3e+10 at col0='' stands out from the rest — you may want to investigate.",
@@ -658,7 +658,7 @@
  },
  {
   "paper": "llama2",
-  "page": 0,
+  "page": 71,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single col1 value 3e+10 at col0='' stands out from the rest — you may want to investigate.",
@@ -668,7 +668,7 @@
  },
  {
   "paper": "llama2",
-  "page": 0,
+  "page": 71,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single African Americans value 0.16 at {'col0': 'ChatGPT MPT-instruct', '_raw': '0.16'} stands out from every other value in the table — you may want to investigate.",
@@ -678,7 +678,7 @@
  },
  {
   "paper": "llama2",
-  "page": 0,
+  "page": 71,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single European Americans value 0.15 at {'col0': 'ChatGPT MPT-instruct', '_raw': '0.15'} stands out from every other value in the table — you may want to investigate.",
@@ -688,7 +688,7 @@
  },
  {
   "paper": "llama2",
-  "page": 0,
+  "page": 72,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single col1 value 3e+10 at col0='' stands out from the rest — you may want to investigate.",
@@ -698,7 +698,7 @@
  },
  {
   "paper": "llama2",
-  "page": 0,
+  "page": 72,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single American actors value 0.55 at {'col0': 'ChatGPT', '_raw': '0.55'} stands out from every other value in the table — you may want to investigate.",
@@ -708,7 +708,7 @@
  },
  {
   "paper": "llama2",
-  "page": 0,
+  "page": 73,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single col1 value 3e+10 at col0='' stands out from the rest — you may want to investigate.",
@@ -718,7 +718,7 @@
  },
  {
   "paper": "llama2",
-  "page": 0,
+  "page": 73,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single col1 value 3e+10 at col0='' stands out from the rest — you may want to investigate.",
@@ -728,7 +728,7 @@
  },
  {
   "paper": "llama2",
-  "page": 0,
+  "page": 74,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single Sewing value 0.62 at {'col0': 'ChatGPT', '_raw': '0.62'} stands out from every other value in the table — you may want to investigate.",
@@ -738,7 +738,7 @@
  },
  {
   "paper": "llama2",
-  "page": 0,
+  "page": 76,
   "priority": "MEDIUM",
   "type": "flatness",
   "suggestion": "MMLU-Humanities (L = 50) is identical across all Subset Type settings — is Subset Type being ignored?",
@@ -749,7 +749,7 @@
  },
  {
   "paper": "llama2",
-  "page": 0,
+  "page": 76,
   "priority": "MEDIUM",
   "type": "flatness",
   "suggestion": " is identical across all Subset Type settings — is Subset Type being ignored?",
@@ -760,7 +760,7 @@
  },
  {
   "paper": "lora",
-  "page": 0,
+  "page": 23,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single MNLI-m value 84.9 at {'Method': '', 'Hyperparameters': 'lp = 32, li = 8', '_raw': '84.9'} stands out from every other value in the table — you may want to investigate.",
@@ -770,7 +770,7 @@
  },
  {
   "paper": "lora",
-  "page": 0,
+  "page": 23,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single value value 37.6 at {'Method': 'GPT-3 (PrefixEmbed)', 'method': 'MNLI(m)-100', '_raw': '37.6'} stands out from every other value in the table — you may want to investigate.",
@@ -780,7 +780,7 @@
  },
  {
   "paper": "lora",
-  "page": 0,
+  "page": 26,
   "priority": "MEDIUM",
   "type": "point_outlier",
   "suggestion": "Single val loss value 1.23 at Rank r=1 is far from the rest (4 robust-SDs) — lone outlier — you may want to investigate.",
@@ -790,7 +790,7 @@
  },
  {
   "paper": "lora",
-  "page": 0,
+  "page": 26,
   "priority": "LOW",
   "type": "level_shift",
   "suggestion": "val loss departs from its established trend (baseline 1.0-16.0) then sits ~1 from 32.0 onward (4 SDs, 6 points) — likely just a continuing/accelerating trend; low confidence.",
@@ -800,7 +800,7 @@
  },
  {
   "paper": "lora",
-  "page": 0,
+  "page": 26,
   "priority": "MEDIUM",
   "type": "point_outlier",
   "suggestion": "Single CIDEr value 2.4329 at Rank r=1 is far from the rest (6 robust-SDs) — lone outlier — you may want to investigate.",
@@ -810,7 +810,7 @@
  },
  {
   "paper": "roberta",
-  "page": 0,
+  "page": 13,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single value value 63.6 at {'col0': 'RoBERTaBASE + all data + 500k steps', 'method': 'CoLA', '_raw': '63.6'} stands out from every other value in the table — you may want to investigate.",
@@ -820,7 +820,7 @@
  },
  {
   "paper": "roberta",
-  "page": 0,
+  "page": 13,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single value value 500000 at Hyperparam='Max Steps' stands out from the rest — you may want to investigate.",
@@ -830,7 +830,7 @@
  },
  {
   "paper": "roberta",
-  "page": 0,
+  "page": 13,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single value value 500000 at Hyperparam='Max Steps' stands out from the rest — you may want to investigate.",
@@ -840,7 +840,7 @@
  },
  {
   "paper": "roformer",
-  "page": 0,
+  "page": 12,
   "priority": "MEDIUM",
   "type": "duplicate",
   "suggestion": "Validation has identical value 64.13 at Model=['BERT-512', 'RoFormer-512'] (but varies elsewhere) — check for copy/paste.",
@@ -850,7 +850,7 @@
  },
  {
   "paper": "simclr",
-  "page": 0,
+  "page": 7,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single value value 626 at {'Method': 'AMDIM', 'Architecture': 'Custom-ResNet', 'method': 'Param (M)', '_raw': '626'} stands out from every other value in the table — you may want to investigate.",
@@ -860,7 +860,7 @@
  },
  {
   "paper": "simclr",
-  "page": 0,
+  "page": 14,
   "priority": "MEDIUM",
   "type": "flatness",
   "suggestion": "Training epochs. is identical across all Model. settings — is Model. being ignored?",
@@ -870,7 +870,7 @@
  },
  {
   "paper": "t5",
-  "page": 0,
+  "page": 24,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single SGLUE value 70.44 at {'_raw': '70.44'} stands out from every other value in the table — you may want to investigate.",
@@ -880,7 +880,7 @@
  },
  {
   "paper": "t5",
-  "page": 0,
+  "page": 28,
   "priority": "HIGH",
   "type": "win_reversal",
   "suggestion": "Best Number of tokens changes along Repeats (winners: ['⋆Full data set 2 29 2 27 2 25 23', '', 2.0]); characterize where each wins.",
@@ -890,7 +890,7 @@
  },
  {
   "paper": "t5",
-  "page": 0,
+  "page": 28,
   "priority": "HIGH",
   "type": "win_reversal",
   "suggestion": "Best Number of tokens changes along Repeats (winners: ['⋆Full data set 2 29 2 27 2 25 23', '', 2.0]); characterize where each wins.",
@@ -900,7 +900,7 @@
  },
  {
   "paper": "t5",
-  "page": 0,
+  "page": 28,
   "priority": "HIGH",
   "type": "win_reversal",
   "suggestion": "Best Number of tokens changes along Repeats (winners: ['⋆Full data set 2 29 2 27 2 25 23', '', 2.0]); characterize where each wins.",
@@ -910,7 +910,7 @@
  },
  {
   "paper": "t5",
-  "page": 0,
+  "page": 28,
   "priority": "HIGH",
   "type": "win_reversal",
   "suggestion": "Best Number of tokens changes along Repeats (winners: ['⋆Full data set 2 29 2 27 2 25 23', '', 2.0]); characterize where each wins.",
@@ -920,7 +920,7 @@
  },
  {
   "paper": "t5",
-  "page": 0,
+  "page": 30,
   "priority": "MEDIUM",
   "type": "duplicate",
   "suggestion": "GLUE has identical value 81.51 at Fine-tuning method=['Adapter layers, d = 128', 'Adapter layers, d = 2048'] (but varies elsewhere) — check for copy/paste.",
@@ -930,7 +930,7 @@
  },
  {
   "paper": "t5",
-  "page": 0,
+  "page": 30,
   "priority": "MEDIUM",
   "type": "duplicate",
   "suggestion": "CNNDM has identical value 16.62 at Fine-tuning method=['Adapter layers, d = 128', 'Adapter layers, d = 2048'] (but varies elsewhere) — check for copy/paste.",
@@ -940,7 +940,7 @@
  },
  {
   "paper": "t5",
-  "page": 0,
+  "page": 30,
   "priority": "MEDIUM",
   "type": "duplicate",
   "suggestion": "SQuAD has identical value 79.47 at Fine-tuning method=['Adapter layers, d = 128', 'Adapter layers, d = 2048'] (but varies elsewhere) — check for copy/paste.",
@@ -950,7 +950,7 @@
  },
  {
   "paper": "t5",
-  "page": 0,
+  "page": 30,
   "priority": "MEDIUM",
   "type": "duplicate",
   "suggestion": "SGLUE has identical value 63.03 at Fine-tuning method=['Adapter layers, d = 128', 'Adapter layers, d = 2048'] (but varies elsewhere) — check for copy/paste.",
@@ -960,7 +960,7 @@
  },
  {
   "paper": "t5",
-  "page": 0,
+  "page": 30,
   "priority": "MEDIUM",
   "type": "duplicate",
   "suggestion": "EnDe has identical value 19.83 at Fine-tuning method=['Adapter layers, d = 128', 'Adapter layers, d = 2048'] (but varies elsewhere) — check for copy/paste.",
@@ -970,7 +970,7 @@
  },
  {
   "paper": "t5",
-  "page": 0,
+  "page": 30,
   "priority": "MEDIUM",
   "type": "duplicate",
   "suggestion": "EnRo has identical value 22.63 at Fine-tuning method=['Adapter layers, d = 128', 'Adapter layers, d = 2048'] (but varies elsewhere) — check for copy/paste.",
@@ -980,7 +980,7 @@
  },
  {
   "paper": "t5",
-  "page": 0,
+  "page": 33,
   "priority": "HIGH",
   "type": "duplicate",
   "suggestion": "CNNDM has identical value 19.24 at Mixing strategy=['⋆Baseline (pre-train/fine-tune)', 'Examples-proportional, K = 2 19', 'Examples-proportional, K = 2 20'] (but varies elsewhere) — check for copy/paste.",
@@ -990,7 +990,7 @@
  },
  {
   "paper": "t5",
-  "page": 0,
+  "page": 34,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single value value 25.21 at Training strategy='Multi-task training' stands out from the rest — you may want to investigate.",
@@ -1000,7 +1000,7 @@
  },
  {
   "paper": "t5",
-  "page": 0,
+  "page": 34,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single value value 36.3 at Training strategy='Multi-task training' stands out from the rest — you may want to investigate.",
@@ -1010,7 +1010,7 @@
  },
  {
   "paper": "t5",
-  "page": 0,
+  "page": 34,
   "priority": "MEDIUM",
   "type": "duplicate",
   "suggestion": "CNNDM has identical value 19.24 at Training strategy=['⋆Unsupervised pre-training + fine-tuning', 'Multi-task training'] (but varies elsewhere) — check for copy/paste.",
@@ -1020,7 +1020,7 @@
  },
  {
   "paper": "vit",
-  "page": 0,
+  "page": 13,
   "priority": "MEDIUM",
   "type": "flatness",
   "suggestion": "Weight decay is identical across all Models settings — is Models being ignored?",
@@ -1030,7 +1030,7 @@
  },
  {
   "paper": "vit",
-  "page": 0,
+  "page": 13,
   "priority": "MEDIUM",
   "type": "flatness",
   "suggestion": "Dropout is identical across all Models settings — is Models being ignored?",
@@ -1040,7 +1040,7 @@
  },
  {
   "paper": "vit",
-  "page": 0,
+  "page": 17,
   "priority": "HIGH",
   "type": "point_outlier",
   "suggestion": "Single value value 0.61382 at {'Pos. Emb.': 'No Pos. Emb.', 'method': 'Default/Stem', '_raw': '0.61382'} stands out from every other value in the table — you may want to investigate.",

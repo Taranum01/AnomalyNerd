@@ -217,6 +217,25 @@ def test_docling_fallback_is_optional_and_graceful():
     assert note is None or isinstance(note, str)
 
 
+def test_docling_tables_keep_their_page():
+    """A layout-model table reports the PDF page Docling found it on, not page 0."""
+    from types import SimpleNamespace as NS
+    from anomalynerd.pdf_ingest import _docling_page
+    assert _docling_page(NS(prov=[NS(page_no=7)])) == 7
+    assert _docling_page(NS(prov=[])) == 0
+    assert _docling_page(NS()) == 0
+
+
+def test_docling_index_does_not_collide_on_same_page():
+    """With real pages, a Docling table must not reuse a pdfplumber table's (page, index)."""
+    from anomalynerd.pdf_ingest import ExtractedTable, _unique_docling_indices
+    a = ExtractedTable(page=3, index_on_page=0, n_rows=3, n_cols=2, status="ok")
+    b = ExtractedTable(page=3, index_on_page=0, n_rows=3, n_cols=2, status="ok", backend="docling")
+    c = ExtractedTable(page=4, index_on_page=0, n_rows=3, n_cols=2, status="ok", backend="docling")
+    _unique_docling_indices([a, b, c])
+    assert (a.index_on_page, b.index_on_page, c.index_on_page) == (0, 1, 0)
+
+
 def test_docling_runs_with_ocr_disabled():
     """The Docling path must set do_ocr=False. Leaving OCR on (Docling's default) invokes the
     RapidOCR/ONNX native stack, which aborts the whole process (SIGABRT) on some PDFs -- a
