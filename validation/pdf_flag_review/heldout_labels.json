@@ -1,0 +1,742 @@
+[
+ {
+  "paper": "bart",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "win_reversal",
+  "suggestion": "Best Model changes along ELI5 PPL (winners: ['Language Model', 'Masked Seq2seq', 'Multitask Masked Language Model', 'Permuted Language Model', 'w/ Text Infilling + Sentence Shuffling', 'w/ Text Infilling', 'w/ Token Deletion', 'Masked Language Model', 'w/ Token Masking', 'w/ Sentence Shuffling', 'w/ Document Rotation', 'BERT Base (Devlin et al., 2019)']); characterize where each wins.",
+  "source": "arXiv:1910.13461",
+  "category": "real_explained",
+  "reason": "different pre-training objectives win different tasks; the comparison the table exists to show"
+ },
+ {
+  "paper": "bart",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "win_reversal",
+  "suggestion": "Best Model changes along ELI5 PPL (winners: ['Language Model', 'Masked Seq2seq', 'Multitask Masked Language Model', 'Permuted Language Model', 'w/ Text Infilling + Sentence Shuffling', 'w/ Text Infilling', 'w/ Token Deletion', 'Masked Language Model', 'w/ Token Masking', 'w/ Sentence Shuffling', 'w/ Document Rotation', 'BERT Base (Devlin et al., 2019)']); characterize where each wins.",
+  "source": "arXiv:1910.13461",
+  "category": "real_explained",
+  "reason": "different pre-training objectives win different tasks; the comparison the table exists to show"
+ },
+ {
+  "paper": "bart",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single MNLI Acc value 75.3 at {'Model': 'w/ Document Rotation', 'ELI5 PPL': 53.69, '_raw': '75.3'} stands out from every other value in the table — you may want to investigate.",
+  "source": "arXiv:1910.13461",
+  "category": "real_worth_a_look",
+  "reason": "document rotation alone drops MNLI to 75.3 while every other variant is 80 to 84"
+ },
+ {
+  "paper": "bart",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "win_reversal",
+  "suggestion": "Best col0 changes along ConvAI2.Valid PPL (winners: ['BART', 'Best System', 'Seq2Seq + Attention']); characterize where each wins.",
+  "source": "arXiv:1910.13461",
+  "category": "false_alarm",
+  "reason": "the two columns are different metrics (one higher-is-better) compared as one ranking"
+ },
+ {
+  "paper": "bart",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single value value 17.5 at col0='Best Extractive' stands out from the rest — you may want to investigate.",
+  "source": "arXiv:1910.13461",
+  "category": "real_explained",
+  "reason": "extractive baseline row scores lowest on ROUGE-L"
+ },
+ {
+  "paper": "chinchilla",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single value value 46.8 at {'col0': 'RACE-h Few-Shot', 'method': 'GPT-3', '_raw': '46.8'} stands out from every other value in the table — you may want to investigate.",
+  "source": "arXiv:2203.15556",
+  "category": "real_worth_a_look",
+  "reason": "GPT-3 RACE-h few-shot 46.8 far below Chinchilla 82.3 and Gopher 71.6"
+ },
+ {
+  "paper": "chinchilla",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single value value 83.2 at col0='SIQA' stands out from the rest — you may want to investigate.",
+  "source": "arXiv:2203.15556",
+  "category": "real_explained",
+  "reason": "supervised SOTA column scores highest by design"
+ },
+ {
+  "paper": "chinchilla",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single value value 93.9 at method='Supervised SOTA' stands out from the rest — you may want to investigate.",
+  "source": "arXiv:2203.15556",
+  "category": "real_explained",
+  "reason": "supervised SOTA row is the upper reference, expected to be highest"
+ },
+ {
+  "paper": "chinchilla",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single value value 90.1 at method='Supervised SOTA' stands out from the rest — you may want to investigate.",
+  "source": "arXiv:2203.15556",
+  "category": "real_explained",
+  "reason": "supervised SOTA row is the upper reference, expected to be highest"
+ },
+ {
+  "paper": "chinchilla",
+  "page": 0,
+  "priority": "MEDIUM",
+  "type": "flatness",
+  "suggestion": "SOTA (open book) is identical across all Method settings — is Method being ignored?",
+  "source": "arXiv:2203.15556",
+  "category": "real_explained",
+  "reason": "single SOTA reference value repeated across settings by design"
+ },
+ {
+  "paper": "chinchilla",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single num _ heads value 28 at {'Parameters': 6800000000.0, '_raw': '28'} stands out from every other value in the table — you may want to investigate.",
+  "source": "arXiv:2203.15556",
+  "category": "real_explained",
+  "reason": "architecture setting: the largest model has the most heads"
+ },
+ {
+  "paper": "chinchilla",
+  "page": 0,
+  "priority": "LOW",
+  "type": "trend",
+  "suggestion": "num _ heads increases as Parameters increases (monotonic, Spearman rho=0.71, 95% CI [-0.32, 1.00]; not well described by a straight line, Pearson r=0.94, 95% CI [-0.12, 1.00]); num _ heads goes from 10 to 28.",
+  "source": "arXiv:2203.15556",
+  "category": "real_explained",
+  "reason": "architecture settings grow with model size, expected"
+ },
+ {
+  "paper": "chinchilla",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single FLOP Ratio (Ours/6𝑁𝐷) value 1.1 at {'Parameters': 305000000.0, '_raw': '1.10'} stands out from every other value in the table — you may want to investigate.",
+  "source": "arXiv:2203.15556",
+  "category": "real_explained",
+  "reason": "FLOP ratio near 1 for all sizes; spread is tiny"
+ },
+ {
+  "paper": "chinchilla",
+  "page": 0,
+  "priority": "LOW",
+  "type": "trend",
+  "suggestion": "FLOP Ratio (Ours/6𝑁𝐷) decreases as Parameters increases (monotonic, Spearman rho=-0.55, 95% CI [-1.00, 0.60]; not well described by a straight line, Pearson r=-0.74, 95% CI [-1.00, 0.33]); FLOP Ratio (Ours/6𝑁𝐷) goes from 1 to 1.",
+  "source": "arXiv:2203.15556",
+  "category": "real_explained",
+  "reason": "architecture-derived ratio, small spread"
+ },
+ {
+  "paper": "chinchilla",
+  "page": 0,
+  "priority": "LOW",
+  "type": "level_shift",
+  "suggestion": "d _ model departs from its established trend (baseline 44.0-425.0) then sits ~2700 from 552.0 onward (56 SDs, 33 points) — likely just a continuing/accelerating trend; low confidence.",
+  "source": "arXiv:2203.15556",
+  "category": "real_explained",
+  "reason": "architecture hyperparameters grow with model size (a design table)"
+ },
+ {
+  "paper": "chinchilla",
+  "page": 0,
+  "priority": "LOW",
+  "type": "trend",
+  "suggestion": "d _ model increases as Parameters (million) increases (monotonic, Spearman rho=1.00, 95% CI [0.99, 1.00]; not well described by a straight line, Pearson r=0.94, 95% CI [0.91, 0.96]); d _ model goes from 512 to 5120.",
+  "source": "arXiv:2203.15556",
+  "category": "real_explained",
+  "reason": "architecture hyperparameters grow with model size (a design table)"
+ },
+ {
+  "paper": "chinchilla",
+  "page": 0,
+  "priority": "LOW",
+  "type": "level_shift",
+  "suggestion": "ffw _ size departs from its established trend (baseline 44.0-425.0) then sits ~10799 from 552.0 onward (56 SDs, 33 points) — likely just a continuing/accelerating trend; low confidence.",
+  "source": "arXiv:2203.15556",
+  "category": "real_explained",
+  "reason": "architecture hyperparameters grow with model size (a design table)"
+ },
+ {
+  "paper": "chinchilla",
+  "page": 0,
+  "priority": "LOW",
+  "type": "trend",
+  "suggestion": "ffw _ size increases as Parameters (million) increases (monotonic, Spearman rho=1.00, 95% CI [0.99, 1.00]; not well described by a straight line, Pearson r=0.94, 95% CI [0.91, 0.96]); ffw _ size goes from 2048 to 20480.",
+  "source": "arXiv:2203.15556",
+  "category": "real_explained",
+  "reason": "architecture hyperparameters grow with model size (a design table)"
+ },
+ {
+  "paper": "chinchilla",
+  "page": 0,
+  "priority": "LOW",
+  "type": "level_shift",
+  "suggestion": "kv _ size holds ~64 (baseline 44.0-306.0) then sits ~128 from 425.0 onward (20 SDs, 34 points).",
+  "source": "arXiv:2203.15556",
+  "category": "real_explained",
+  "reason": "architecture hyperparameters grow with model size (a design table)"
+ },
+ {
+  "paper": "chinchilla",
+  "page": 0,
+  "priority": "LOW",
+  "type": "level_shift",
+  "suggestion": "n _ heads holds ~12 (baseline 44.0-425.0) then sits ~28 from 2298.0 onward (7 SDs, 15 points).",
+  "source": "arXiv:2203.15556",
+  "category": "real_explained",
+  "reason": "architecture hyperparameters grow with model size (a design table)"
+ },
+ {
+  "paper": "chinchilla",
+  "page": 0,
+  "priority": "LOW",
+  "type": "trend",
+  "suggestion": "n _ heads increases as Parameters (million) increases (monotonic, Spearman rho=0.91, 95% CI [0.78, 0.97]; not well described by a straight line, Pearson r=0.94, 95% CI [0.91, 0.96]); n _ heads goes from 8 to 40.",
+  "source": "arXiv:2203.15556",
+  "category": "real_explained",
+  "reason": "architecture hyperparameters grow with model size (a design table)"
+ },
+ {
+  "paper": "chinchilla",
+  "page": 0,
+  "priority": "LOW",
+  "type": "level_shift",
+  "suggestion": "n _ layers departs from its established trend (baseline 44.0-425.0) then sits ~33 from 724.0 onward (11 SDs, 29 points) — likely just a continuing/accelerating trend; low confidence.",
+  "source": "arXiv:2203.15556",
+  "category": "real_explained",
+  "reason": "architecture hyperparameters grow with model size (a design table)"
+ },
+ {
+  "paper": "chinchilla",
+  "page": 0,
+  "priority": "LOW",
+  "type": "trend",
+  "suggestion": "n _ layers increases as Parameters (million) increases (monotonic, Spearman rho=0.98, 95% CI [0.94, 0.99]; not well described by a straight line, Pearson r=0.89, 95% CI [0.84, 0.93]); n _ layers goes from 8 to 47.",
+  "source": "arXiv:2203.15556",
+  "category": "real_explained",
+  "reason": "architecture hyperparameters grow with model size (a design table)"
+ },
+ {
+  "paper": "chinchilla",
+  "page": null,
+  "priority": "LOW",
+  "type": "stat:terminal_digit",
+  "suggestion": "terminal (last) digit distribution is non-uniform (chi2=26.4, p=0.002); can reflect rounding habits, but worth a look",
+  "source": "arXiv:2203.15556",
+  "category": "real_explained",
+  "reason": "terminal-digit departure from rounding; LOW"
+ },
+ {
+  "paper": "convnext",
+  "page": 0,
+  "priority": "MEDIUM",
+  "type": "flatness",
+  "suggestion": "4.5G is identical across all model settings — is model being ignored?",
+  "source": "arXiv:2201.03545",
+  "category": "real_worth_a_look",
+  "reason": "different models (Swin-T vs ConvNeXt-T, etc.) have identical FLOPs; confirmed in the PDF, matched by design"
+ },
+ {
+  "paper": "convnext",
+  "page": 0,
+  "priority": "MEDIUM",
+  "type": "flatness",
+  "suggestion": "8.7G is identical across all model settings — is model being ignored?",
+  "source": "arXiv:2201.03545",
+  "category": "real_worth_a_look",
+  "reason": "different models (Swin-T vs ConvNeXt-T, etc.) have identical FLOPs; confirmed in the PDF, matched by design"
+ },
+ {
+  "paper": "convnext",
+  "page": 0,
+  "priority": "MEDIUM",
+  "type": "flatness",
+  "suggestion": "15.4G is identical across all model settings — is model being ignored?",
+  "source": "arXiv:2201.03545",
+  "category": "real_worth_a_look",
+  "reason": "different models (Swin-T vs ConvNeXt-T, etc.) have identical FLOPs; confirmed in the PDF, matched by design"
+ },
+ {
+  "paper": "convnext",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single #param. value 9.37e+08 at {'model': '•R-152x4 [39]', 'FLOPs': '840.5G', '_raw': '937M'} stands out from every other value in the table — you may want to investigate.",
+  "source": "arXiv:2201.03545",
+  "category": "real_explained",
+  "reason": "parameter count of the largest model (a setting)"
+ },
+ {
+  "paper": "convnext",
+  "page": 0,
+  "priority": "MEDIUM",
+  "type": "flatness",
+  "suggestion": "8.7G is identical across all model settings — is model being ignored?",
+  "source": "arXiv:2201.03545",
+  "category": "real_worth_a_look",
+  "reason": "different models have identical FLOPs; confirmed in the PDF, matched by design"
+ },
+ {
+  "paper": "convnext",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "win_reversal",
+  "suggestion": "Best model changes along GFLOPs (winners: ['depthwise conv', '\"patchify\" stem', 'stage ratio and increase width', 'move up depthwise conv', 'kernel size→5', 'BN → LN', 'kernel size→9', 'ResNet-200 (enhanced recipe)', 'kernel size→11', 'separate d.s. conv (ConvNeXt-B)', 'Swin-B [45]', 'inverting dimensions', 'increase width']); characterize where each wins.",
+  "source": "arXiv:2201.03545",
+  "category": "false_alarm",
+  "reason": "incremental ablation steps ranked as competitors along GFLOPs"
+ },
+ {
+  "paper": "deberta",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single SST-2 Acc. value 93.2 at {'Model.Model': 'BERTlarge', 'CoLA QQP.Mcc': 60.6, 'MNLI-m/mm Acc.': '86.6/-', '_raw': '93.2'} stands out from every other value in the table — you may want to investigate.",
+  "source": "arXiv:2006.03654",
+  "category": "real_explained",
+  "reason": "older baseline (BERT) scores lowest"
+ },
+ {
+  "paper": "deberta",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single RTE Acc. value 70.4 at {'Model.Model': 'BERTlarge', 'CoLA QQP.Mcc': 60.6, 'MNLI-m/mm Acc.': '86.6/-', '_raw': '70.4'} stands out from every other value in the table — you may want to investigate.",
+  "source": "arXiv:2006.03654",
+  "category": "real_explained",
+  "reason": "older baseline (BERT) scores lowest"
+ },
+ {
+  "paper": "deberta",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single Average Score value 84.6 at {'Model': 'RoBERTalarge', 'CB F1/Acc': '90.5/95.2', 'MultiRC F1a/EM': '84.4/52.5', 'ReCoRD F1/EM': '90.6/90.0', '_raw': '84.6'} stands out from every other value in the table — you may want to investigate.",
+  "source": "arXiv:2006.03654",
+  "category": "real_explained",
+  "reason": "older baseline row (RoBERTa) lowest"
+ },
+ {
+  "paper": "deberta",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single value value 37.5 at {'Model': 'Test PPL', 'method': 'DeBERTa DeBERTa-MT GPT-2 Transformer-XL_2', '_raw': '37.50'} stands out from every other value in the table — you may want to investigate.",
+  "source": "arXiv:2006.03654",
+  "category": "real_worth_a_look",
+  "reason": "one model's test perplexity 37.50 versus 19.5 to 24 for the rest; confirmed in the PDF"
+ },
+ {
+  "paper": "deberta",
+  "page": 0,
+  "priority": "MEDIUM",
+  "type": "flatness",
+  "suggestion": "RoBERTa DeBERTa-AP is identical across all Model settings — is Model being ignored?",
+  "source": "arXiv:2006.03654",
+  "category": "false_alarm",
+  "reason": "a two-row table (dev vs test) read with model names as the axis"
+ },
+ {
+  "paper": "deberta",
+  "page": 0,
+  "priority": "MEDIUM",
+  "type": "flatness",
+  "suggestion": "DeBERTa DeBERTa-MT GPT-2 Transformer-XL_1 is identical across all Model settings — is Model being ignored?",
+  "source": "arXiv:2006.03654",
+  "category": "false_alarm",
+  "reason": "a two-row table (dev vs test) read with model names as the axis"
+ },
+ {
+  "paper": "detr",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single AP value 32.8 at {'spatial pos. enc..encoder': 'none', 'spatial pos. enc..decoder': 'none', 'output pos. enc..decoder': 'learned at input', '_raw': '32.8'} stands out from every other value in the table — you may want to investigate.",
+  "source": "arXiv:2005.12872",
+  "category": "real_explained",
+  "reason": "ablation without any positional encoding is weakest, expected"
+ },
+ {
+  "paper": "detr",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single AP50 value 55.2 at {'spatial pos. enc..encoder': 'none', 'spatial pos. enc..decoder': 'none', 'output pos. enc..decoder': 'learned at input', '_raw': '55.2'} stands out from every other value in the table — you may want to investigate.",
+  "source": "arXiv:2005.12872",
+  "category": "real_explained",
+  "reason": "ablation without any positional encoding is weakest, expected"
+ },
+ {
+  "paper": "detr",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single value value 78 at Model='UPSnet' stands out from the rest — you may want to investigate.",
+  "source": "arXiv:2005.12872",
+  "category": "real_explained",
+  "reason": "small spread (78.0 vs 79 to 80); not notable"
+ },
+ {
+  "paper": "electra",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single MRPC value 88 at {'Model': 'BERT', '_raw': '88.0'} stands out from every other value in the table — you may want to investigate.",
+  "source": "arXiv:2003.10555",
+  "category": "real_explained",
+  "reason": "original BERT baseline row lowest"
+ },
+ {
+  "paper": "electra",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single STS value 90 at {'Model': 'BERT', '_raw': '90.0'} stands out from every other value in the table — you may want to investigate.",
+  "source": "arXiv:2003.10555",
+  "category": "real_explained",
+  "reason": "original BERT baseline row lowest"
+ },
+ {
+  "paper": "electra",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single RTE value 70.4 at {'Model': 'BERT', '_raw': '70.4'} stands out from every other value in the table — you may want to investigate.",
+  "source": "arXiv:2003.10555",
+  "category": "real_explained",
+  "reason": "original BERT baseline row lowest"
+ },
+ {
+  "paper": "electra",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single Avg. value 84 at {'Model': 'BERT', '_raw': '84.0'} stands out from every other value in the table — you may want to investigate.",
+  "source": "arXiv:2003.10555",
+  "category": "real_explained",
+  "reason": "original BERT baseline row lowest"
+ },
+ {
+  "paper": "electra",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single Train FLOPs value 3.1e+22 at {'Model': 'ALBERT', 'CoLA': 69.1, '_raw': '3.1e22 (10x)'} stands out from every other value in the table — you may want to investigate.",
+  "source": "arXiv:2003.10555",
+  "category": "real_explained",
+  "reason": "training compute: ALBERT trained with the most FLOPs (a setting)"
+ },
+ {
+  "paper": "electra",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "win_reversal",
+  "suggestion": "Best Model changes along CoLA (winners: ['BERT', 'RoBERTa', 'ALBERT', 'XLNet', 'ELECTRA']); characterize where each wins.",
+  "source": "arXiv:2003.10555",
+  "category": "false_alarm",
+  "reason": "win_reversal on a table where each column is a different task; ranking across tasks is not a reversal"
+ },
+ {
+  "paper": "electra",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "win_reversal",
+  "suggestion": "Best Model changes along CoLA (winners: ['BERT', 'RoBERTa', 'ALBERT', 'XLNet', 'ELECTRA']); characterize where each wins.",
+  "source": "arXiv:2003.10555",
+  "category": "false_alarm",
+  "reason": "win_reversal on a table where each column is a different task; ranking across tasks is not a reversal"
+ },
+ {
+  "paper": "electra",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single MRPC value 85.4 at {'Model': 'BERT', 'CoLA': 60.5, '_raw': '85.4'} stands out from every other value in the table — you may want to investigate.",
+  "source": "arXiv:2003.10555",
+  "category": "real_explained",
+  "reason": "original BERT baseline row lowest"
+ },
+ {
+  "paper": "electra",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "win_reversal",
+  "suggestion": "Best Model changes along CoLA (winners: ['BERT', 'RoBERTa', 'ALBERT', 'XLNet', 'ELECTRA']); characterize where each wins.",
+  "source": "arXiv:2003.10555",
+  "category": "false_alarm",
+  "reason": "win_reversal on a table where each column is a different task; ranking across tasks is not a reversal"
+ },
+ {
+  "paper": "electra",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single STS value 86.5 at {'Model': 'BERT', 'CoLA': 60.5, '_raw': '86.5'} stands out from every other value in the table — you may want to investigate.",
+  "source": "arXiv:2003.10555",
+  "category": "real_explained",
+  "reason": "original BERT baseline row lowest"
+ },
+ {
+  "paper": "electra",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "win_reversal",
+  "suggestion": "Best Model changes along CoLA (winners: ['BERT', 'RoBERTa', 'ALBERT', 'XLNet', 'ELECTRA']); characterize where each wins.",
+  "source": "arXiv:2003.10555",
+  "category": "false_alarm",
+  "reason": "win_reversal on a table where each column is a different task; ranking across tasks is not a reversal"
+ },
+ {
+  "paper": "electra",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "win_reversal",
+  "suggestion": "Best Model changes along CoLA (winners: ['BERT', 'RoBERTa', 'ALBERT', 'XLNet', 'ELECTRA']); characterize where each wins.",
+  "source": "arXiv:2003.10555",
+  "category": "false_alarm",
+  "reason": "win_reversal on a table where each column is a different task; ranking across tasks is not a reversal"
+ },
+ {
+  "paper": "electra",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single MNLI value 86.7 at {'Model': 'BERT', 'CoLA': 60.5, '_raw': '86.7'} stands out from every other value in the table — you may want to investigate.",
+  "source": "arXiv:2003.10555",
+  "category": "real_explained",
+  "reason": "original BERT baseline row lowest"
+ },
+ {
+  "paper": "electra",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "win_reversal",
+  "suggestion": "Best Model changes along CoLA (winners: ['BERT', 'RoBERTa', 'ALBERT', 'XLNet', 'ELECTRA']); characterize where each wins.",
+  "source": "arXiv:2003.10555",
+  "category": "false_alarm",
+  "reason": "win_reversal on a table where each column is a different task; ranking across tasks is not a reversal"
+ },
+ {
+  "paper": "electra",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "win_reversal",
+  "suggestion": "Best Model changes along CoLA (winners: ['BERT', 'RoBERTa', 'ELECTRA']); characterize where each wins.",
+  "source": "arXiv:2003.10555",
+  "category": "false_alarm",
+  "reason": "win_reversal on a table where each column is a different task; ranking across tasks is not a reversal"
+ },
+ {
+  "paper": "electra",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single RTE value 70.1 at {'Model': 'BERT', 'CoLA': 60.5, '_raw': '70.1'} stands out from every other value in the table — you may want to investigate.",
+  "source": "arXiv:2003.10555",
+  "category": "real_explained",
+  "reason": "original BERT baseline row lowest"
+ },
+ {
+  "paper": "electra",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "win_reversal",
+  "suggestion": "Best Model changes along CoLA (winners: ['BERT', 'RoBERTa', 'ALBERT', 'XLNet', 'ELECTRA']); characterize where each wins.",
+  "source": "arXiv:2003.10555",
+  "category": "false_alarm",
+  "reason": "win_reversal on a table where each column is a different task; ranking across tasks is not a reversal"
+ },
+ {
+  "paper": "electra",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "win_reversal",
+  "suggestion": "Best Model changes along CoLA (winners: ['BERT', 'RoBERTa', 'ALBERT', 'XLNet', 'ELECTRA']); characterize where each wins.",
+  "source": "arXiv:2003.10555",
+  "category": "false_alarm",
+  "reason": "win_reversal on a table where each column is a different task; ranking across tasks is not a reversal"
+ },
+ {
+  "paper": "electra",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "win_reversal",
+  "suggestion": "Best Model changes along CoLA (winners: ['BERT', 'RoBERTa', 'ELECTRA']); characterize where each wins.",
+  "source": "arXiv:2003.10555",
+  "category": "false_alarm",
+  "reason": "win_reversal on a table where each column is a different task; ranking across tasks is not a reversal"
+ },
+ {
+  "paper": "electra",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single Train FLOPs value 3.1e+21 at {'Model': 'ELECTRA-1.75M', '_raw': '3.1e21 (2200x)'} stands out from every other value in the table — you may want to investigate.",
+  "source": "arXiv:2003.10555",
+  "category": "real_explained",
+  "reason": "training compute of the largest model (a setting)"
+ },
+ {
+  "paper": "mae",
+  "page": 0,
+  "priority": "MEDIUM",
+  "type": "flatness",
+  "suggestion": "- is identical across all encoder settings — is encoder being ignored?",
+  "source": "arXiv:2111.06377",
+  "category": "false_alarm",
+  "reason": "'-' placeholder read as a value"
+ },
+ {
+  "paper": "mae",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single value value 16384 at config='batch size' stands out from the rest — you may want to investigate.",
+  "source": "arXiv:2111.06377",
+  "category": "real_explained",
+  "reason": "hyperparameter (batch size)"
+ },
+ {
+  "paper": "mae",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single params value 6.801e+09 at {'method': 'iGPT [6]', 'model': 'iGPT-XL', '_raw': '6801 M'} stands out from every other value in the table — you may want to investigate.",
+  "source": "arXiv:2111.06377",
+  "category": "real_explained",
+  "reason": "parameter count of the largest model (a setting)"
+ },
+ {
+  "paper": "mae",
+  "page": 0,
+  "priority": "MEDIUM",
+  "type": "flatness",
+  "suggestion": "ViT-L is identical across all method settings — is method being ignored?",
+  "source": "arXiv:2111.06377",
+  "category": "real_explained",
+  "reason": "the same encoder used across methods, by design"
+ },
+ {
+  "paper": "swin",
+  "page": 0,
+  "priority": "MEDIUM",
+  "type": "flatness",
+  "suggestion": "55.4G is identical across all (a) Regular ImageNet-1K trained models.method settings — is (a) Regular ImageNet-1K trained models.method being ignored?",
+  "source": "arXiv:2103.14030",
+  "category": "real_worth_a_look",
+  "reason": "ViT-B/16 and DeiT-B both 55.4G; same architecture, confirmed in PDF"
+ },
+ {
+  "paper": "swin",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single (a) Regular ImageNet-1K trained models.#param. value 9.37e+08 at {'(a) Regular ImageNet-1K trained models.method': 'R-152x4 [38]', '(a) Regular ImageNet-1K trained models.FLOPs': '840.5G', '_raw': '937M'} stands out from every other value in the table — you may want to investigate.",
+  "source": "arXiv:2103.14030",
+  "category": "real_explained",
+  "reason": "parameter count of the largest model (a setting)"
+ },
+ {
+  "paper": "swin",
+  "page": 0,
+  "priority": "MEDIUM",
+  "type": "flatness",
+  "suggestion": "55.4G is identical across all (a) Regular ImageNet-1K trained models.method settings — is (a) Regular ImageNet-1K trained models.method being ignored?",
+  "source": "arXiv:2103.14030",
+  "category": "real_worth_a_look",
+  "reason": "ViT-B/16 and DeiT-B both 55.4G; same architecture, confirmed in PDF"
+ },
+ {
+  "paper": "swin",
+  "page": 0,
+  "priority": "MEDIUM",
+  "type": "flatness",
+  "suggestion": "55.4G is identical across all (a) Regular ImageNet-1K trained models.method settings — is (a) Regular ImageNet-1K trained models.method being ignored?",
+  "source": "arXiv:2103.14030",
+  "category": "real_worth_a_look",
+  "reason": "different models have identical FLOPs; confirmed in the PDF, matched by design"
+ },
+ {
+  "paper": "swin",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single test.score value 38.5 at {'ADE20K.Method': 'ACNet [24]', 'ADE20K.Backbone': 'ResNet-101', 'FLOPs.': '', '_raw': '38.5'} stands out from every other value in the table — you may want to investigate.",
+  "source": "arXiv:2103.14030",
+  "category": "false_alarm",
+  "reason": "a sparse column, mostly '-', so one value looks extreme"
+ },
+ {
+  "paper": "swin",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single MSA in a stage (ms).S1 value 122.5 at method.='sliding window (naive)' stands out from the rest — you may want to investigate.",
+  "source": "arXiv:2103.14030",
+  "category": "real_explained",
+  "reason": "the naive sliding-window baseline is far slower, the point of the table"
+ },
+ {
+  "paper": "swin",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single MSA in a stage (ms).S2 value 38.3 at method.='sliding window (naive)' stands out from the rest — you may want to investigate.",
+  "source": "arXiv:2103.14030",
+  "category": "real_explained",
+  "reason": "the naive sliding-window baseline is far slower, the point of the table"
+ },
+ {
+  "paper": "swin",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single MSA in a stage (ms).S3 value 12.1 at method.='sliding window (naive)' stands out from the rest — you may want to investigate.",
+  "source": "arXiv:2103.14030",
+  "category": "real_explained",
+  "reason": "the naive sliding-window baseline is far slower, the point of the table"
+ },
+ {
+  "paper": "swin",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single MSA in a stage (ms).S4 value 7.6 at {'method.': 'sliding window (naive)', '_raw': '7.6'} stands out from every other value in the table — you may want to investigate.",
+  "source": "arXiv:2103.14030",
+  "category": "real_explained",
+  "reason": "the naive sliding-window baseline is far slower, the point of the table"
+ },
+ {
+  "paper": "xlnet",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single F1 value 81.77 at {'SQuAD2.0': 'BERT [10]', 'EM': 78.98, 'SQuAD1.1': 'BERT† [10]', 'EM_1': 84.1, 'F1_1': 90.9, '_raw': '81.77'} stands out from every other value in the table — you may want to investigate.",
+  "source": "arXiv:1906.08237",
+  "category": "real_explained",
+  "reason": "older baseline (BERT) lowest"
+ },
+ {
+  "paper": "xlnet",
+  "page": 0,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single Value value 500000 at Hparam='Number of steps' stands out from the rest — you may want to investigate.",
+  "source": "arXiv:1906.08237",
+  "category": "real_explained",
+  "reason": "hyperparameter (number of steps)"
+ }
+]

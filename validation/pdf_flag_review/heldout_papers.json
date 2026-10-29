@@ -1,0 +1,42 @@
+[
+ {
+  "name": "deberta",
+  "source": "arXiv:2006.03654"
+ },
+ {
+  "name": "electra",
+  "source": "arXiv:2003.10555"
+ },
+ {
+  "name": "bart",
+  "source": "arXiv:1910.13461"
+ },
+ {
+  "name": "xlnet",
+  "source": "arXiv:1906.08237"
+ },
+ {
+  "name": "swin",
+  "source": "arXiv:2103.14030"
+ },
+ {
+  "name": "mae",
+  "source": "arXiv:2111.06377"
+ },
+ {
+  "name": "distilbert",
+  "source": "arXiv:1910.01108"
+ },
+ {
+  "name": "chinchilla",
+  "source": "arXiv:2203.15556"
+ },
+ {
+  "name": "convnext",
+  "source": "arXiv:2201.03545"
+ },
+ {
+  "name": "detr",
+  "source": "arXiv:2005.12872"
+ }
+]

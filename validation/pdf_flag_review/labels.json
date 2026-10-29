@@ -85,9 +85,10 @@
   "priority": "MEDIUM",
   "type": "flatness",
   "suggestion": "Contractor is identical across all Measurement settings — is Measurement being ignored?",
-  "category": "false_alarm",
-  "reason": "a text label column (prompt source) treated as values",
-  "source": "arXiv:2203.02155"
+  "category": "real_explained",
+  "reason": "prompt and demonstration counts are equal by design (every prompt has a demonstration)",
+  "source": "arXiv:2203.02155",
+  "relabeled": "was false_alarm; re-checked"
  },
  {
   "paper": "instructgpt",
@@ -95,9 +96,10 @@
   "priority": "MEDIUM",
   "type": "flatness",
   "suggestion": "Customer is identical across all Measurement settings — is Measurement being ignored?",
-  "category": "false_alarm",
-  "reason": "a text label column (prompt source) treated as values",
-  "source": "arXiv:2203.02155"
+  "category": "real_explained",
+  "reason": "prompt and demonstration counts are equal by design (every prompt has a demonstration)",
+  "source": "arXiv:2203.02155",
+  "relabeled": "was false_alarm; re-checked"
  },
  {
   "paper": "instructgpt",
@@ -105,9 +107,10 @@
   "priority": "MEDIUM",
   "type": "flatness",
   "suggestion": "Contractor is identical across all Measurement settings — is Measurement being ignored?",
-  "category": "false_alarm",
-  "reason": "a text label column (prompt source) treated as values",
-  "source": "arXiv:2203.02155"
+  "category": "real_explained",
+  "reason": "prompt and demonstration counts are equal by design (every prompt has a demonstration)",
+  "source": "arXiv:2203.02155",
+  "relabeled": "was false_alarm; re-checked"
  },
  {
   "paper": "instructgpt",
@@ -135,9 +138,10 @@
   "priority": "MEDIUM",
   "type": "flatness",
   "suggestion": "dense is identical across all ConvNet config. (Table 1) settings — is ConvNet config. (Table 1) being ignored?",
-  "category": "false_alarm",
-  "reason": "a text label column (evaluation method) treated as values",
-  "source": "arXiv:1409.1556"
+  "category": "real_worth_a_look",
+  "reason": "two different models (configs D and E) tie exactly on this score; confirmed in the PDF text",
+  "source": "arXiv:1409.1556",
+  "relabeled": "was false_alarm; re-checked against PDF text"
  },
  {
   "paper": "vgg",
@@ -145,9 +149,10 @@
   "priority": "MEDIUM",
   "type": "flatness",
   "suggestion": "multi-crop is identical across all ConvNet config. (Table 1) settings — is ConvNet config. (Table 1) being ignored?",
-  "category": "false_alarm",
-  "reason": "a text label column (evaluation method) treated as values",
-  "source": "arXiv:1409.1556"
+  "category": "real_worth_a_look",
+  "reason": "two different models (configs D and E) tie exactly on this score; confirmed in the PDF text",
+  "source": "arXiv:1409.1556",
+  "relabeled": "was false_alarm; re-checked against PDF text"
  },
  {
   "paper": "vgg",
@@ -155,9 +160,10 @@
   "priority": "MEDIUM",
   "type": "flatness",
   "suggestion": "multi-crop & dense is identical across all ConvNet config. (Table 1) settings — is ConvNet config. (Table 1) being ignored?",
-  "category": "false_alarm",
-  "reason": "a text label column (evaluation method) treated as values",
-  "source": "arXiv:1409.1556"
+  "category": "real_worth_a_look",
+  "reason": "two different models (configs D and E) tie exactly on this score; confirmed in the PDF text",
+  "source": "arXiv:1409.1556",
+  "relabeled": "was false_alarm; re-checked against PDF text"
  },
  {
   "paper": "vgg",
@@ -165,9 +171,10 @@
   "priority": "MEDIUM",
   "type": "flatness",
   "suggestion": "dense is identical across all ConvNet config. (Table 1) settings — is ConvNet config. (Table 1) being ignored?",
-  "category": "false_alarm",
-  "reason": "a text label column (evaluation method) treated as values",
-  "source": "arXiv:1409.1556"
+  "category": "real_worth_a_look",
+  "reason": "two different models (configs D and E) tie exactly on this score; confirmed in the PDF text",
+  "source": "arXiv:1409.1556",
+  "relabeled": "was false_alarm; re-checked against PDF text"
  },
  {
   "paper": "attention",
@@ -735,9 +742,10 @@
   "priority": "MEDIUM",
   "type": "flatness",
   "suggestion": "MMLU-Humanities (L = 50) is identical across all Subset Type settings — is Subset Type being ignored?",
-  "category": "false_alarm",
-  "reason": "a text label column treated as values",
-  "source": "arXiv:2307.09288"
+  "category": "real_explained",
+  "reason": "the reference mean (mu_n) is nearly constant across subset types by design",
+  "source": "arXiv:2307.09288",
+  "relabeled": "was false_alarm; re-checked"
  },
  {
   "paper": "llama2",
@@ -745,9 +753,10 @@
   "priority": "MEDIUM",
   "type": "flatness",
   "suggestion": " is identical across all Subset Type settings — is Subset Type being ignored?",
-  "category": "false_alarm",
-  "reason": "a text label column treated as values",
-  "source": "arXiv:2307.09288"
+  "category": "real_explained",
+  "reason": "the reference mean (mu_n) is nearly constant across subset types by design",
+  "source": "arXiv:2307.09288",
+  "relabeled": "was false_alarm; re-checked"
  },
  {
   "paper": "lora",

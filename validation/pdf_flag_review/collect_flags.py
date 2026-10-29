@@ -1,9 +1,10 @@
 """Re-collect every flag AnomalyNerd raises on the 22 papers of the PDF flag review.
 
-    python validation/pdf_flag_review/collect_flags.py [download_dir]
+    python validation/pdf_flag_review/collect_flags.py [download_dir] [--heldout]
 
 Downloads each paper (arXiv or PLOS, public), runs the article pipeline, and writes
-flags.json next to this script. Compare it with labels.json, which holds the hand judgments.
+flags.json (or heldout_flags.json with --heldout) next to this script. Compare it with
+labels.json (or heldout_labels.json), which holds the hand judgments.
 """
 import json
 import os
@@ -25,9 +26,11 @@ def url_for(source):
 
 def main():
     from anomalynerd.analyze_pdf import analyze_source
-    out_dir = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, "pdfs")
+    args = [a for a in sys.argv[1:] if a != "--heldout"]
+    heldout = "--heldout" in sys.argv
+    out_dir = args[0] if args else os.path.join(HERE, "pdfs")
     os.makedirs(out_dir, exist_ok=True)
-    papers = json.load(open(os.path.join(HERE, "papers.json")))
+    papers = json.load(open(os.path.join(HERE, "heldout_papers.json" if heldout else "papers.json")))
     flags = []
     for p in papers:
         path = os.path.join(out_dir, p["name"] + ".pdf")
@@ -45,8 +48,9 @@ def main():
                 flags.append({"paper": p["name"], "page": None, "priority": s.severity.upper(),
                               "type": "stat:" + s.kind, "suggestion": s.detail})
         print(f"{p['name']}: {sum(1 for x in flags if x['paper'] == p['name'])} flags", flush=True)
-    json.dump(flags, open(os.path.join(HERE, "flags.json"), "w"), indent=1, ensure_ascii=False)
-    print(f"total {len(flags)} flags -> flags.json")
+    out = "heldout_flags.json" if heldout else "flags.json"
+    json.dump(flags, open(os.path.join(HERE, out), "w"), indent=1, ensure_ascii=False)
+    print(f"total {len(flags)} flags -> {out}")
 
 
 if __name__ == "__main__":
