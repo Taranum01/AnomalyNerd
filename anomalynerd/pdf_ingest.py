@@ -530,7 +530,8 @@ def parse_pdf(path: str) -> PdfParse:
     # true table region, so it can recover a clean results table that pdfplumber merged with
     # prose. Clean Docling tables are ADDED; the merged pdfplumber stand-ins they replace are
     # dropped (we keep them only if Docling recovers nothing, so the gap is still reported).
-    if usable_so_far == 0 or merged_tables:
+    stacked_tables = [t for t in tables if t.status in ("ok", "partial") and has_stacked_caption(t)]
+    if usable_so_far == 0 or merged_tables or stacked_tables:
         docling_tables, docling_note = _try_docling(path)
         if docling_note:
             notes.append(docling_note)
@@ -579,6 +580,15 @@ def parse_pdf(path: str) -> PdfParse:
             seen.add(s); uniq.append(s)
     return PdfParse(path=path, n_pages=n_pages, tables=tables,
                     stat_strings=uniq, text_pages=text_pages, notes=notes)
+
+
+_CAPTION_CELL = re.compile(r"^\s*(Tab(le)?|le)\s*\d+\s*[:.]")
+
+
+def has_stacked_caption(table) -> bool:
+    """True when a table body holds a "Table N:" caption row (possibly with the leading
+    letters lost to character splitting), meaning several stacked tables were read as one."""
+    return any(_CAPTION_CELL.match(str(c)) for r in (table.rows or []) for c in r)
 
 
 def _try_docling(path: str):

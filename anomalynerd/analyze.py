@@ -31,7 +31,10 @@ def score(flags: list[Flag]) -> list[Flag]:
         elif f.type == "unit_mismatch":
             hi = True; med = True
         elif f.type == "point_outlier":
-            hi = s >= 6; med = s >= 3.5
+            if f.detail.get("column_scale"):
+                hi = med = False   # whole column on its own scale: listed, but not HIGH/MEDIUM
+            else:
+                hi = s >= 6; med = s >= 3.5
         elif f.type == "monotonicity":
             hi = s >= 0.5; med = s >= 0.2
         elif f.type == "level_shift":
