@@ -1,0 +1,42 @@
+[
+ {
+  "name": "pythia",
+  "source": "arXiv:2304.01373"
+ },
+ {
+  "name": "gptneox",
+  "source": "arXiv:2204.06745"
+ },
+ {
+  "name": "resnext",
+  "source": "arXiv:1611.05431"
+ },
+ {
+  "name": "efficientdet",
+  "source": "arXiv:1911.09070"
+ },
+ {
+  "name": "yolov7",
+  "source": "arXiv:2207.02696"
+ },
+ {
+  "name": "dino",
+  "source": "arXiv:2104.14294"
+ },
+ {
+  "name": "beit",
+  "source": "arXiv:2106.08254"
+ },
+ {
+  "name": "deit",
+  "source": "arXiv:2012.12877"
+ },
+ {
+  "name": "xlmr",
+  "source": "arXiv:1911.02116"
+ },
+ {
+  "name": "mt5",
+  "source": "arXiv:2010.11934"
+ }
+]

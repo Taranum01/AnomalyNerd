@@ -322,6 +322,32 @@ def detect_cat_exceptions(t: TidyTable, min_support=4):
     return flags
 
 
+_PLACEHOLDERS = {"-", "--", "\u2013", "\u2014", "n/a", "na"}
+
+
+def _is_placeholder(label):
+    """A '-' or 'n/a' cell used as a row label: a missing value, not a real entity."""
+    return isinstance(label, str) and label.strip().lower() in _PLACEHOLDERS
+
+
+def _levels_are_metric_names(levels):
+    """True when every level names a data split and a metric (e.g. 'Dev PPL', 'Test PPL'):
+    the rows of a sideways table, not settings of an experiment."""
+    from .ingest import _LOWER_BETTER_WORDS, _HIGHER_BETTER_WORDS, _HIGHER_BETTER_SUBSTR
+    import re as _re
+    levels = list(levels)
+    if len(levels) < 2 or not all(isinstance(lv, str) for lv in levels):
+        return False
+    splits = {"dev", "test", "val", "valid", "validation", "train", "training"}
+    def _is_metric(s):
+        low = s.lower()
+        words = set(_re.findall(r"[a-z]+", low))
+        has_metric = bool(words & (_LOWER_BETTER_WORDS | _HIGHER_BETTER_WORDS)
+                          or any(w in low for w in _HIGHER_BETTER_SUBSTR))
+        return has_metric and bool(words & splits)
+    return all(_is_metric(lv) for lv in levels)
+
+
 # ---------------------------------------------------------------- T5
 def detect_duplicates_and_flatness(t: TidyTable, min_decimals=2):
     """Two signals, kept distinct:
@@ -344,9 +370,15 @@ def detect_duplicates_and_flatness(t: TidyTable, min_decimals=2):
         for ax_name in t.axes:
             if ax_name == ent or len(t.levels(ax_name)) < 2:
                 continue
+            if _levels_are_metric_names(t.levels(ax_name)):
+                # e.g. rows 'Dev PPL' / 'Test PPL' of a sideways table: the same number under
+                # two different metrics is not an ignored setting
+                continue
             non = [a for a in t.axes if a not in (ent, ax_name)]
             level_lists = [t.levels(a) for a in non]
             for e in t.levels(ent):
+                if _is_placeholder(e):
+                    continue
                 all_const = True; any_series = False
                 for combo in (product(*level_lists) if level_lists else [()]):
                     fixed = dict(zip(non, combo)); fixed[ent] = e
@@ -370,12 +402,12 @@ def detect_duplicates_and_flatness(t: TidyTable, min_decimals=2):
     if t.entity_axis:
         ent = t.entity_axis
         for ax_name in t.axes:
-            if ax_name == ent:
+            if ax_name == ent or _levels_are_metric_names(t.levels(ax_name)):
                 continue
             non = [a for a in t.axes if a not in (ent, ax_name)]
             level_lists = [t.levels(a) for a in non]
             for e in t.levels(ent):
-                if (e, ax_name) in ignored:
+                if (e, ax_name) in ignored or _is_placeholder(e):
                     continue  # this axis legitimately doesn't affect e -> not copy/paste
                 for combo in (product(*level_lists) if level_lists else [()]):
                     fixed = dict(zip(non, combo)); fixed[ent] = e

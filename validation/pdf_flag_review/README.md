@@ -10,12 +10,13 @@ Two sets of papers:
 - **Held-out set** (`heldout_papers.json`, `heldout_labels.json`): 10 further arXiv papers,
   74 flags, reviewed later. It was not used to tune the tool, but the two fixes below were
   found partly by studying its false alarms.
-- **Fresh set** (`fresh_papers.json`, `fresh_removed_labels.json`): 10 more arXiv papers, used
-  only to test the two fixes below.
+- **Fresh sets** (`fresh_papers.json`, `fresh2_papers.json`): 10 and 10 more arXiv papers, used
+  only to test the fixes below. Only the flags the fixes changed were labelled
+  (`fresh_removed_labels.json`, `fresh_round2_changes.json`).
 
 `collect_flags.py` downloads the papers and re-collects the flags (`--heldout` for the second
-set, `--fresh` for the third). Both labelled sets reproduce exactly against the code at the commit
-that added this folder; with the two fixes below, they give the reduced counts in "Two fixes".
+set, `--fresh` and `--fresh2` for the others). Both labelled sets reproduce exactly against the
+code at the commit that added this folder; with the fixes below, they give the counts in "Fixes".
 
 ## Method
 
@@ -40,14 +41,14 @@ PDF text (marked with a `relabeled` field); for example, two VGG configurations 
 | set | flags | false alarm | real, explained | real, worth a look |
 |---|---|---|---|---|
 | development (22 papers) | 104 | 22 (21%) | 55 (53%) | 27 (26%) |
-| held-out (10 papers) | 74 | 16 (22%) | 48 (65%) | 10 (14%) |
+| held-out (10 papers) | 74 | 15 (20%) | 48 (65%) | 11 (15%) |
 
 About four in five flags point at a value that was read correctly and really stands out, and the
 false-alarm rate is the same on papers the review never touched. Between one in eight and one in
 four flags is worth a reviewer's attention.
 
 Priority does not yet separate the useful flags: on both sets, a MEDIUM flag is more often worth a
-look than a HIGH one (development 45% vs 16%, held-out 58% vs 6%).
+look than a HIGH one (development 45% vs 16%, held-out 58% vs 8%).
 
 ## An internal inconsistency it found
 
@@ -65,7 +66,7 @@ prompts while every other was evaluated on 1917 (page 56).
 - Development set: columns of model sizes (7B, 175B) analyzed as results; blank row labels meaning
   "same as above" grouped as one category; tables of prose example responses read as results
   tables; merged cells garbling row labels.
-- Held-out set: 10 of 16 come from one cause, a "best method changes" flag on a table where each
+- Held-out set: 10 of 15 come from one cause, a "best method changes" flag on a table where each
   column is a different task, so a different winner per column is expected, not a reversal.
 
 ## A tuning attempt that did not hold up
@@ -73,36 +74,60 @@ prompts while every other was evaluated on 1917 (page 56).
 We tried fixing the development-set causes and re-tuning priority from the development labels.
 On the development set this cut false alarms from 21% to 6%. On the held-out set it changed
 nothing (22% before, 24% after), and the re-tuned priority made HIGH flags less useful (6% worth a
-look before, 0% after). Those changes were fitted to the development papers, so they were not
+look before, 0% after; figures with the labels at the time, before one held-out relabel). Those changes were fitted to the development papers, so they were not
 adopted. The held-out set is what made that visible, and it is why it is kept separate.
 
-## Two fixes
+## Fixes
 
-Two causes explain most false alarms, and each has a narrow fix:
+The false alarms above come from a few causes, each with a narrow fix; none was tuned on a score
+threshold. Fixes 1 to 4 only remove flags. Fixes 5 to 7 change how a table is read, so they can
+also bring in new flags.
 
-1. **A "winner" with nothing to beat.** The "best method changes" check counted a winner at a
-   level even when only one entry had a value there. This happens when a score column is read as
-   an axis, when row labels are garbled, or on a table of example responses. A winner now counts
-   only when at least two entries compete at that level.
-2. **Model sizes read as results.** In a column of model sizes (7B, 30B, 937M), the largest one
-   always stands out. Outlier flags on such a column are no longer reported. The column is
-   recognized when every number in it ends in M or B and its header names parameters or is
-   blank. Duplicate and flatness checks still run on it, since identical sizes can be a
-   copy-paste error.
+1. **A "winner" with nothing to beat.** A winner now counts only when at least two entries
+   compete at that level (a score column read as an axis, garbled labels, example responses).
+2. **Model sizes read as results.** Outlier flags are not reported on a column of model sizes
+   (7B, 937M). Duplicate and flatness checks still run on it.
+3. **A '-' placeholder used as a label.** It is treated as missing, never as an entity.
+4. **A sideways table.** Flatness is not checked across rows that each name a data split and a
+   metric (for example 'Dev PPL' and 'Test PPL').
+5. **A 'Total' row.** It is shown in the extracted table but left out of the checks, since it is
+   computed from the other rows.
+6. **Two rows' numbers fused into one cell** ('0.25 0.23'). If the cell above or below is empty,
+   the numbers are split back into their rows; if every number in a row is fused, the row is split
+   in two. A table that still has fused cells after this is misaligned, so it is reported as not
+   checked.
+7. **Small tables printed side by side** and read as one. When every header is 'Group.Sub' and
+   the groups repeat the same sub-columns, each group is checked as its own table.
 
-Both fixes only remove flags; they never add one. Effect on the labelled sets:
+Counts with all fixes, against the hand labels. Flags that appear only after a fix were checked
+against the PDF and labelled too (marked `added` in `labels.json`).
 
 | set | flags | false alarm | real, explained | real, worth a look |
 |---|---|---|---|---|
 | development, before | 104 | 22 | 55 | 27 |
-| development, after | 83 | 5 | 51 | 27 |
-| held-out, before | 74 | 16 | 48 | 10 |
-| held-out, after | 57 | 4 | 43 | 10 |
+| development, after | 87 | 1 | 52 | 34 |
+| held-out, before | 74 | 15 | 48 | 11 |
+| held-out, after | 53 | 0 | 42 | 11 |
 
-No flag labelled worth a look was removed.
+The held-out "before" row reflects one relabel: a Swin flag (ACNet test score 38.5) first marked a
+false alarm is a value read correctly that stands out with no reason given, so it is worth a look.
 
-Both fixes were found by studying the labelled flags, so they were then tested on a third set of
-10 arXiv papers never used before (`fresh_papers.json`). There they removed 18 of 56 flags and
-added none. `fresh_removed_labels.json` records a hand check of the 18 against the PDFs: 14 false
-alarms and 4 explained (largest model size), none worth a look. The 38 flags that remain on this
-set have not been labelled.
+Of the 27 development flags worth a look, 21 are unchanged. Four, on the Llama 2 batch table, now
+appear in a different form: with the Total row left out, the batch number is read as the axis, and
+the same findings (two batches with long prompts, longer examples and responses later) are
+reported along it. Two are lost: a level shift in turns per dialogue on that table, and a ChatGPT
+score of 0.15 on page 71, which only stood out because two neighbouring cells had been misread;
+with those cells repaired it falls just below the threshold. The new flags worth a look come from
+tables that are now read correctly (ChatGPT sentiment scores on page 74, Falcon's ToxiGen score).
+
+The one false alarm left is RoBERTa (page 13): a low-scoring task (CoLA) pooled with the others.
+A rule that compares each value only within its own column removed it, but also removed a real
+finding of the same shape (the ChatGPT score above), so it was not kept.
+
+**Fresh papers.** The first two fixes were tested on `fresh_papers.json`: they removed 18 of 56
+flags (14 false alarms, 4 explained) and added none. The other five fixes were then tested on both
+fresh sets. On the first set they removed one explained flag and added one explained flag. On
+`fresh2_papers.json`, never used before, they removed 14 of 58 flags (3 false alarms from a
+shredded table, 4 Total-row flags, one digit-test note, and 6 explained flags that reappear in a
+new form) and added 6 (those re-expressions). No flag worth a look was lost on either fresh set. The flags that
+did not change on the fresh sets have not been labelled.

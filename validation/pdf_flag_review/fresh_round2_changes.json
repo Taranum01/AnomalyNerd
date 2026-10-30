@@ -1,0 +1,222 @@
+[
+ {
+  "set": "fresh",
+  "change": "removed",
+  "paper": "flan",
+  "page": 40,
+  "type": "point_outlier",
+  "suggestion": "Single Model value 5.4e+11 at Model_1='Flan-U-PaLM' stands out from the rest — you may want to investigate.",
+  "category": "real_explained",
+  "reason": "model-size column: largest model; table now skipped because two rows were merged"
+ },
+ {
+  "set": "fresh",
+  "change": "added",
+  "paper": "qwen",
+  "page": 19,
+  "type": "point_outlier",
+  "suggestion": "Single Programming Language.Rust value 67.1 at {'Model.': 'GPT-4', '_raw': '67.1'} stands out from every other value in the table — you may want to investigate.",
+  "category": "real_explained",
+  "reason": "GPT-4, the strongest model, far ahead of the open models in this column"
+ },
+ {
+  "set": "fresh2",
+  "change": "removed",
+  "paper": "pythia",
+  "page": 21,
+  "type": "trend",
+  "suggestion": "ModelSize increases as TotalGPUhoursrequired increases (roughly linear, Pearson r=0.99, 95% CI [0.99, 1.00]); ModelSize goes from 70000000 to 12000000000.",
+  "category": "real_explained",
+  "reason": "GPU count and GPU-hours grow with model size, by design"
+ },
+ {
+  "set": "fresh2",
+  "change": "removed",
+  "paper": "pythia",
+  "page": 21,
+  "type": "level_shift",
+  "suggestion": "GPUCount departs from its established trend (baseline 510.0-7120.0) then sits ~149 from 14240.0 onward (20 SDs, 3 points) — likely just a continuing/accelerating trend; low confidence.",
+  "category": "real_explained",
+  "reason": "GPU count and GPU-hours grow with model size, by design"
+ },
+ {
+  "set": "fresh2",
+  "change": "removed",
+  "paper": "pythia",
+  "page": 21,
+  "type": "trend",
+  "suggestion": "GPUCount increases as TotalGPUhoursrequired increases (roughly linear, Pearson r=0.99, 95% CI [0.74, 1.00]); GPUCount goes from 32 to 256.",
+  "category": "real_explained",
+  "reason": "GPU count and GPU-hours grow with model size, by design"
+ },
+ {
+  "set": "fresh2",
+  "change": "removed",
+  "paper": "pythia",
+  "page": 21,
+  "type": "trend",
+  "suggestion": "Model Size increases as Total GPU hours required increases (roughly linear, Pearson r=0.99, 95% CI [0.99, 1.00]); Model Size goes from 70000000 to 12000000000.",
+  "category": "real_explained",
+  "reason": "GPU count and GPU-hours grow with model size, by design"
+ },
+ {
+  "set": "fresh2",
+  "change": "removed",
+  "paper": "pythia",
+  "page": 21,
+  "type": "level_shift",
+  "suggestion": "GPU Count departs from its established trend (baseline 510.0-7120.0) then sits ~149 from 14240.0 onward (20 SDs, 3 points) — likely just a continuing/accelerating trend; low confidence.",
+  "category": "real_explained",
+  "reason": "GPU count and GPU-hours grow with model size, by design"
+ },
+ {
+  "set": "fresh2",
+  "change": "removed",
+  "paper": "pythia",
+  "page": 21,
+  "type": "trend",
+  "suggestion": "GPU Count increases as Total GPU hours required increases (roughly linear, Pearson r=0.99, 95% CI [0.74, 1.00]); GPU Count goes from 32 to 256.",
+  "category": "real_explained",
+  "reason": "GPU count and GPU-hours grow with model size, by design"
+ },
+ {
+  "set": "fresh2",
+  "change": "removed",
+  "paper": "gptneox",
+  "page": 37,
+  "type": "point_outlier",
+  "suggestion": "Single GPT-2 value 3.83112e+08 at col0='Total' stands out from the rest — you may want to investigate.",
+  "category": "real_explained",
+  "reason": "a 'Total' row, larger than every part by construction"
+ },
+ {
+  "set": "fresh2",
+  "change": "removed",
+  "paper": "gptneox",
+  "page": 37,
+  "type": "point_outlier",
+  "suggestion": "Single GPT-NeoX-20B value 3.42888e+08 at col0='Total' stands out from the rest — you may want to investigate.",
+  "category": "real_explained",
+  "reason": "a 'Total' row, larger than every part by construction"
+ },
+ {
+  "set": "fresh2",
+  "change": "removed",
+  "paper": "gptneox",
+  "page": 37,
+  "type": "point_outlier",
+  "suggestion": "Single GPT-2 value 3.37788e+08 at col0='Total' stands out from the rest — you may want to investigate.",
+  "category": "real_explained",
+  "reason": "a 'Total' row, larger than every part by construction"
+ },
+ {
+  "set": "fresh2",
+  "change": "removed",
+  "paper": "gptneox",
+  "page": 37,
+  "type": "point_outlier",
+  "suggestion": "Single GPT-NeoX-20B value 3.22074e+08 at col0='Total' stands out from the rest — you may want to investigate.",
+  "category": "real_explained",
+  "reason": "a 'Total' row, larger than every part by construction"
+ },
+ {
+  "set": "fresh2",
+  "change": "removed",
+  "paper": "mt5",
+  "page": 13,
+  "type": "point_outlier",
+  "suggestion": "Single value value 73.5 at method='ur' stands out from the rest — you may want to investigate.",
+  "category": "false_alarm",
+  "reason": "shredded table: language columns fused into one cell, so values are misplaced"
+ },
+ {
+  "set": "fresh2",
+  "change": "removed",
+  "paper": "mt5",
+  "page": 13,
+  "type": "point_outlier",
+  "suggestion": "Single value value 75.9 at method='ur' stands out from the rest — you may want to investigate.",
+  "category": "false_alarm",
+  "reason": "shredded table: language columns fused into one cell, so values are misplaced"
+ },
+ {
+  "set": "fresh2",
+  "change": "removed",
+  "paper": "mt5",
+  "page": 13,
+  "type": "point_outlier",
+  "suggestion": "Single value value 79.4 at method='ur' stands out from the rest — you may want to investigate.",
+  "category": "false_alarm",
+  "reason": "shredded table: language columns fused into one cell, so values are misplaced"
+ },
+ {
+  "set": "fresh2",
+  "change": "removed",
+  "paper": "mt5",
+  "page": null,
+  "type": "stat:benford",
+  "suggestion": "leading-digit distribution departs from Benford's law (chi2=478.2, p=0.000); may be natural for bounded data, but worth a look",
+  "category": "real_explained",
+  "reason": "digit test that included numbers from a shredded table, now excluded"
+ },
+ {
+  "set": "fresh2",
+  "change": "added",
+  "paper": "pythia",
+  "page": 21,
+  "type": "level_shift",
+  "suggestion": "value departs from its established trend (baseline 70000000.0-1400000000.0) then sits ~149 from 2800000000.0 onward (24 SDs, 3 points) — likely just a continuing/accelerating trend; low confidence.",
+  "category": "real_explained",
+  "reason": "GPU count and GPU-hours grow with model size, by design"
+ },
+ {
+  "set": "fresh2",
+  "change": "added",
+  "paper": "pythia",
+  "page": 21,
+  "type": "level_shift",
+  "suggestion": "value departs from its established trend (baseline 70000000.0-1400000000.0) then sits ~149 from 2800000000.0 onward (24 SDs, 3 points) — likely just a continuing/accelerating trend; low confidence.",
+  "category": "real_explained",
+  "reason": "GPU count and GPU-hours grow with model size, by design"
+ },
+ {
+  "set": "fresh2",
+  "change": "added",
+  "paper": "pythia",
+  "page": 21,
+  "type": "trend",
+  "suggestion": "value increases as ModelSize increases (roughly linear, Pearson r=0.99, 95% CI [0.99, 1.00]); value goes from 510 to 72300.",
+  "category": "real_explained",
+  "reason": "GPU count and GPU-hours grow with model size, by design"
+ },
+ {
+  "set": "fresh2",
+  "change": "added",
+  "paper": "pythia",
+  "page": 21,
+  "type": "trend",
+  "suggestion": "value increases as ModelSize increases (roughly linear, Pearson r=0.98, 95% CI [0.78, 1.00]); value goes from 32 to 256.",
+  "category": "real_explained",
+  "reason": "GPU count and GPU-hours grow with model size, by design"
+ },
+ {
+  "set": "fresh2",
+  "change": "added",
+  "paper": "pythia",
+  "page": 21,
+  "type": "trend",
+  "suggestion": "value increases as Model Size increases (roughly linear, Pearson r=0.99, 95% CI [0.99, 1.00]); value goes from 510 to 72300.",
+  "category": "real_explained",
+  "reason": "GPU count and GPU-hours grow with model size, by design"
+ },
+ {
+  "set": "fresh2",
+  "change": "added",
+  "paper": "pythia",
+  "page": 21,
+  "type": "trend",
+  "suggestion": "value increases as Model Size increases (roughly linear, Pearson r=0.98, 95% CI [0.78, 1.00]); value goes from 32 to 256.",
+  "category": "real_explained",
+  "reason": "GPU count and GPU-hours grow with model size, by design"
+ }
+]

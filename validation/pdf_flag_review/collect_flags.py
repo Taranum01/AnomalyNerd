@@ -1,10 +1,11 @@
 """Re-collect every flag AnomalyNerd raises on the 22 papers of the PDF flag review.
 
-    python validation/pdf_flag_review/collect_flags.py [download_dir] [--heldout | --fresh]
+    python validation/pdf_flag_review/collect_flags.py [download_dir] [--heldout | --fresh | --fresh2]
 
 Downloads each paper (arXiv or PLOS, public), runs the article pipeline, and writes
-flags.json (heldout_flags.json with --heldout, fresh_flags.json with --fresh) next to this
-script. Compare it with labels.json or heldout_labels.json, which hold the hand judgments.
+flags.json (heldout_flags.json with --heldout, fresh_flags.json with --fresh,
+fresh2_flags.json with --fresh2) next to this script. Compare it with labels.json or
+heldout_labels.json, which hold the hand judgments.
 """
 import json
 import os
@@ -26,10 +27,11 @@ def url_for(source):
 
 def main():
     from anomalynerd.analyze_pdf import analyze_source
-    args = [a for a in sys.argv[1:] if a not in ("--heldout", "--fresh")]
+    args = [a for a in sys.argv[1:] if a not in ("--heldout", "--fresh", "--fresh2")]
     heldout = "--heldout" in sys.argv
     fresh = "--fresh" in sys.argv
-    prefix = "heldout_" if heldout else ("fresh_" if fresh else "")
+    fresh2 = "--fresh2" in sys.argv
+    prefix = "heldout_" if heldout else ("fresh2_" if fresh2 else ("fresh_" if fresh else ""))
     out_dir = args[0] if args else os.path.join(HERE, "pdfs")
     os.makedirs(out_dir, exist_ok=True)
     papers = json.load(open(os.path.join(HERE, prefix + "papers.json")))

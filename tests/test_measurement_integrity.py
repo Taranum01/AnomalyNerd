@@ -84,3 +84,72 @@ def test_param_count_column(tmp_path, header, values, expected):
     rows = [[f'm{i}', v] for i, v in enumerate(values)]
     t = read_csv(write(tmp_path, ['method', header], rows), metric_col=header)
     assert _is_param_count_column(t) is expected
+
+
+def test_dash_label_is_not_an_entity():
+    from anomalynerd.model import TidyTable, Axis
+    from anomalynerd.detectors import detect_duplicates_and_flatness
+    rows = [{"enc": e, "speedup": s, "value": v} for e, s, v in
+            [("L", "-", 8.0), ("H", "-", 8.0), ("L", "2.8x", 8.0), ("H", "3.5x", 1.0)]]
+    t = TidyTable("t", {"enc": Axis("enc", "unordered_cat"), "speedup": Axis("speedup", "unordered_cat")},
+                  entity_axis="speedup", metric_name="depth", lower_is_better=True, rows=rows)
+    assert not [f for f in detect_duplicates_and_flatness(t) if f.coords.get("speedup") == "-"]
+
+
+def test_no_flatness_across_dev_and_test_rows():
+    from anomalynerd.model import TidyTable, Axis
+    from anomalynerd.detectors import detect_duplicates_and_flatness
+    rows = [{"split": s, "method": m, "value": v} for s, m, v in
+            [("Dev PPL", "A", 21.6), ("Test PPL", "A", 21.6), ("Dev PPL", "B", 20.7), ("Test PPL", "B", 20.0)]]
+    t = TidyTable("t", {"split": Axis("split", "unordered_cat"), "method": Axis("method", "unordered_cat")},
+                  entity_axis="method", metric_name="value", lower_is_better=True, rows=rows)
+    assert not [f for f in detect_duplicates_and_flatness(t) if f.type == "flatness"]
+
+
+def test_flatness_still_fires_across_real_settings():
+    from anomalynerd.model import TidyTable, Axis
+    from anomalynerd.detectors import detect_duplicates_and_flatness
+    rows = [{"loss": s, "method": m, "value": v} for s, m, v in
+            [("CE loss", "A", 21.6), ("Focal loss", "A", 21.6), ("CE loss", "B", 20.7), ("Focal loss", "B", 20.0)]]
+    t = TidyTable("t", {"loss": Axis("loss", "unordered_cat"), "method": Axis("method", "unordered_cat")},
+                  entity_axis="method", metric_name="value", lower_is_better=True, rows=rows)
+    assert [f for f in detect_duplicates_and_flatness(t) if f.type == "flatness"]
+
+
+def test_side_by_side_tables_are_split(tmp_path):
+    header = ["Gender.Descriptor", "Gender.%Doc", "Religion.Descriptor", "Religion.%Doc"]
+    rows = [["female", "50.0%", "christian", "33.2%"], ["male", "39.1%", "religious", "28.8%"],
+            ["feminine", "5.4%", "spiritual", "20.6%"]]
+    tables = read_tables(write(tmp_path, header, rows))
+    assert len(tables) == 2
+    assert all(len(t.rows) == 3 for t in tables)
+
+
+def test_total_row_left_out_of_checks():
+    from anomalynerd.pdf_ingest import _assess_and_tidy
+    rows = [["Batch", "Comparisons", "Turns"]] + [[str(i), str(1000 * i), "3.9"] for i in range(1, 8)] \
+        + [["Total", "28000", "3.9"]]
+    et = _assess_and_tidy(rows, 1, 0)
+    assert et.status in ("ok", "partial")
+    assert all(r.get("Batch") != "Total" for td in et.tidies for r in td.rows)
+    assert any("total row" in c for c in et.caveats)
+
+
+@pytest.mark.parametrize('cell,fused', [('29.13 35.25', True), ('7B 30B', True), ('89 91', True),
+                                        ('1 024', False), ('8.3 (+1.9)', False), ('29.13', False), ('10.1% 24.5% 28.2%', True)])
+def test_fused_cell_detection(cell, fused):
+    from types import SimpleNamespace as NS
+    from anomalynerd.analyze_pdf import _has_fused_cells
+    assert _has_fused_cells(NS(rows=[["m", cell]])) is fused
+
+
+def test_fused_cells_split_back_into_rows():
+    from anomalynerd.pdf_ingest import _unfuse_rows
+    down, n = _unfuse_rows([["MPT", "7B", "0.25 0.23"], ["", "30B", ""], ["Falcon", "7B", "0.26"]])
+    assert n == 1 and [r[2] for r in down] == ["0.25", "0.23", "0.26"]
+    split, n = _unfuse_rows([["MPT", "7B 30B", "29.13 35.25"], ["Falcon", "7B", "25.95"]])
+    assert n == 2 and split[:2] == [["MPT", "7B", "29.13"], ["MPT", "30B", "35.25"]]
+    kept, n = _unfuse_rows([["MPT", "7B", "29.13 35.25"], ["Falcon", "40B", "25.95"]])
+    assert n == 0 and kept[0][2] == "29.13 35.25"
+    up, n = _unfuse_rows([["YOLOR-E6", "683.2G", ""], ["YOLOR-D6", "935.6G", "45 34"]])
+    assert n == 1 and [r[2] for r in up] == ["45", "34"]

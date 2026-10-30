@@ -1047,5 +1047,181 @@
   "category": "real_explained",
   "reason": "the 'no position embedding' ablation",
   "source": "arXiv:2010.11929"
+ },
+ {
+  "paper": "llama2",
+  "page": 11,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single Avg. # Tokens in Prompt value 336 at {'Dataset': 'OpenAI Summarize', '_raw': '336.0'} stands out from every other value in the table — you may want to investigate.",
+  "category": "real_explained",
+  "reason": "summarization prompts contain the text to be summarized, so they are far longer than other prompts",
+  "source": "arXiv:2307.09288",
+  "added": "appears after the fused-cell, total-row and side-by-side fixes"
+ },
+ {
+  "paper": "llama2",
+  "page": 21,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single %Doc value 14.8 at Descriptor='gay' stands out from the rest — you may want to investigate.",
+  "category": "real_explained",
+  "reason": "the most frequent descriptor in its group; each group lists descriptors by frequency",
+  "source": "arXiv:2307.09288",
+  "added": "appears after the fused-cell, total-row and side-by-side fixes"
+ },
+ {
+  "paper": "llama2",
+  "page": 21,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single %Doc value 69.4 at {'Descriptor': 'american', '_raw': '69.4%'} stands out from every other value in the table — you may want to investigate.",
+  "category": "real_explained",
+  "reason": "the most frequent descriptor in its group; each group lists descriptors by frequency",
+  "source": "arXiv:2307.09288",
+  "added": "appears after the fused-cell, total-row and side-by-side fixes"
+ },
+ {
+  "paper": "llama2",
+  "page": 23,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single ToxiGen ↓ value 14.53 at {'col0': 'Falcon', '_raw': '14.53'} stands out from every other value in the table — you may want to investigate.",
+  "category": "real_worth_a_look",
+  "reason": "read correctly (Table 11: Falcon 7B ToxiGen 14.53); every other pretrained model is 21.19 to 26.10, no reason in the table",
+  "source": "arXiv:2307.09288",
+  "added": "appears after the fused-cell, total-row and side-by-side fixes"
+ },
+ {
+  "paper": "llama2",
+  "page": 52,
+  "priority": "LOW",
+  "type": "trend",
+  "suggestion": "Avg. # Tokens per Example increases as Batch increases (monotonic, Spearman rho=1.00, 95% CI [0.93, 1.00]; not well described by a straight line, Pearson r=0.93, 95% CI [0.89, 0.97]); Avg. # Tokens per Example goes from 547 to 1008.",
+  "category": "real_worth_a_look",
+  "reason": "later collection batches have longer examples and responses (Table 26)",
+  "source": "arXiv:2307.09288",
+  "added": "appears after the fused-cell, total-row and side-by-side fixes"
+ },
+ {
+  "paper": "llama2",
+  "page": 52,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single Avg. # Tokens in Prompt value 46.7 at Batch=5 is far from the rest (6 robust-SDs) — lone outlier — you may want to investigate.",
+  "category": "real_worth_a_look",
+  "reason": "two adjacent batches with prompts about twice as long as the rest (Table 26)",
+  "source": "arXiv:2307.09288",
+  "added": "appears after the fused-cell, total-row and side-by-side fixes"
+ },
+ {
+  "paper": "llama2",
+  "page": 52,
+  "priority": "MEDIUM",
+  "type": "point_outlier",
+  "suggestion": "Single Avg. # Tokens in Prompt value 45.3 at Batch=4 is far from the rest (6 robust-SDs) — lone outlier — you may want to investigate.",
+  "category": "real_worth_a_look",
+  "reason": "two adjacent batches with prompts about twice as long as the rest (Table 26)",
+  "source": "arXiv:2307.09288",
+  "added": "appears after the fused-cell, total-row and side-by-side fixes"
+ },
+ {
+  "paper": "llama2",
+  "page": 52,
+  "priority": "MEDIUM",
+  "type": "point_outlier",
+  "suggestion": "Single Avg. # Tokens in Response value 163.1 at Batch=5 is far from the rest (6 robust-SDs) — lone outlier — you may want to investigate.",
+  "category": "real_worth_a_look",
+  "reason": "batch 5 responses (163.1) are shorter than batches 4 and 6 (182.9, 198.1) against a rising series, the same batch where prompts double",
+  "source": "arXiv:2307.09288",
+  "added": "appears after the fused-cell, total-row and side-by-side fixes"
+ },
+ {
+  "paper": "llama2",
+  "page": 52,
+  "priority": "MEDIUM",
+  "type": "point_outlier",
+  "suggestion": "Single Avg. # Tokens in Response value 195.5 at Batch=3 is far from the rest (4 robust-SDs) — lone outlier — you may want to investigate.",
+  "category": "real_worth_a_look",
+  "reason": "batch 3 responses (195.5) are longer than batches 2 and 4 (170.7, 182.9) against a rising series, no reason in the table",
+  "source": "arXiv:2307.09288",
+  "added": "appears after the fused-cell, total-row and side-by-side fixes"
+ },
+ {
+  "paper": "llama2",
+  "page": 52,
+  "priority": "LOW",
+  "type": "trend",
+  "suggestion": "Avg. # Tokens in Response increases as Batch increases (roughly linear, Pearson r=0.95, 95% CI [0.88, 0.99]); Avg. # Tokens in Response goes from 159 to 259.",
+  "category": "real_worth_a_look",
+  "reason": "later collection batches have longer examples and responses (Table 26)",
+  "source": "arXiv:2307.09288",
+  "added": "appears after the fused-cell, total-row and side-by-side fixes"
+ },
+ {
+  "paper": "llama2",
+  "page": 74,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single Artistic value 0.75 at {'col0': 'ChatGPT', '_raw': '0.75'} stands out from every other value in the table — you may want to investigate.",
+  "category": "real_worth_a_look",
+  "reason": "ChatGPT profession-sentiment score far above every pretrained model (Table 50, page 74)",
+  "source": "arXiv:2307.09288",
+  "added": "appears after the fused-cell, total-row and side-by-side fixes"
+ },
+ {
+  "paper": "llama2",
+  "page": 74,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single Scientific value 0.53 at {'col0': 'ChatGPT', '_raw': '0.53'} stands out from every other value in the table — you may want to investigate.",
+  "category": "real_worth_a_look",
+  "reason": "ChatGPT profession-sentiment score far above every pretrained model (Table 50, page 74)",
+  "source": "arXiv:2307.09288",
+  "added": "appears after the fused-cell, total-row and side-by-side fixes"
+ },
+ {
+  "paper": "llama2",
+  "page": 74,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single Entertainer value 0.71 at {'col0': 'ChatGPT', '_raw': '0.71'} stands out from every other value in the table — you may want to investigate.",
+  "category": "real_worth_a_look",
+  "reason": "ChatGPT profession-sentiment score far above every pretrained model (Table 50, page 74)",
+  "source": "arXiv:2307.09288",
+  "added": "appears after the fused-cell, total-row and side-by-side fixes"
+ },
+ {
+  "paper": "llama2",
+  "page": 74,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single Dance value 0.73 at {'col0': 'ChatGPT', '_raw': '0.73'} stands out from every other value in the table — you may want to investigate.",
+  "category": "real_worth_a_look",
+  "reason": "ChatGPT profession-sentiment score far above every pretrained model (Table 50, page 74)",
+  "source": "arXiv:2307.09288",
+  "added": "appears after the fused-cell, total-row and side-by-side fixes"
+ },
+ {
+  "paper": "llama2",
+  "page": 74,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single Writing value 0.73 at {'col0': 'ChatGPT', '_raw': '0.73'} stands out from every other value in the table — you may want to investigate.",
+  "category": "real_worth_a_look",
+  "reason": "ChatGPT profession-sentiment score far above every pretrained model (Table 50, page 74)",
+  "source": "arXiv:2307.09288",
+  "added": "appears after the fused-cell, total-row and side-by-side fixes"
+ },
+ {
+  "paper": "llama2",
+  "page": 74,
+  "priority": "HIGH",
+  "type": "point_outlier",
+  "suggestion": "Single Mental health value 0.69 at {'col0': 'ChatGPT', '_raw': '0.69'} stands out from every other value in the table — you may want to investigate.",
+  "category": "real_worth_a_look",
+  "reason": "ChatGPT profession-sentiment score far above every pretrained model (Table 50, page 74)",
+  "source": "arXiv:2307.09288",
+  "added": "appears after the fused-cell, total-row and side-by-side fixes"
  }
 ]

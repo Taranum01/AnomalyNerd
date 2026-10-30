@@ -12,7 +12,7 @@ Two accepted CSV shapes:
 Schema inference is a best-effort GUESS; every choice can be overridden by the caller.
 """
 from __future__ import annotations
-import csv, os, re, math
+import csv, os, re, math, tempfile
 from .model import TidyTable, Axis, MISSING
 
 _METRIC_WORDS = ("rmse", "mae", "mse", "error", "err", "loss", "accuracy", "acc",
@@ -304,6 +304,29 @@ def _columns_are_homogeneous(cols, headers):
     return lo > 0 and (hi / lo) < 10
 
 
+def _side_by_side_groups(header, cols):
+    """Detect several small tables printed side by side and read as one: every header is
+    'Group.Sub', at least two groups repeat the same sub-columns, and each group has its own
+    text (label) column and numeric column. Returns [(group, [(sub, header), ...]), ...]
+    or None."""
+    if len(header) < 4 or not all("." in h for h in header):
+        return None
+    groups = {}
+    for h in header:
+        prefix, sub = h.rsplit(".", 1)
+        groups.setdefault(prefix, []).append((sub, h))
+    if len(groups) < 2:
+        return None
+    subs = [tuple(s for s, _ in m) for m in groups.values()]
+    if len(set(subs)) != 1 or len(subs[0]) < 2:
+        return None
+    for members in groups.values():
+        kinds = [_looks_numeric(cols[h]) for _, h in members]
+        if all(kinds) or not any(kinds):
+            return None
+    return list(groups.items())
+
+
 def read_tables(path, **kwargs):
     """Like read_csv, but returns a LIST of TidyTables. For a wide table whose numeric
     columns are DIFFERENT metrics (different scales, e.g. accuracy/time/ratio), each metric
@@ -316,6 +339,23 @@ def read_tables(path, **kwargs):
     header, data = _read_csv_rows(path)
     cols = {h: [row[i] if i < len(row) else "" for row in data]
             for i, h in enumerate(header)}
+
+    groups = _side_by_side_groups(header, cols)
+    if groups and kwargs.get("metric_col") is None:
+        tables = []
+        base = kwargs.get("name") or path.split("/")[-1]
+        for prefix, members in groups:
+            with tempfile.NamedTemporaryFile("w", suffix=".csv", delete=False, newline="") as tmp:
+                writer = csv.writer(tmp)
+                writer.writerow([sub for sub, _ in members])
+                writer.writerows([[cols[h][i] for _, h in members] for i in range(len(data))])
+            try:
+                options = dict(kwargs)
+                options["name"] = f"{base} [{prefix}]"
+                tables.extend(read_tables(tmp.name, **options))
+            finally:
+                os.unlink(tmp.name)
+        return tables
 
     numeric_cols = [h for h in header if _looks_numeric(cols[h])]
     cat_cols = [h for h in header if h not in numeric_cols]
@@ -338,7 +378,6 @@ def read_tables(path, **kwargs):
     # The old sweep heuristic incorrectly removed improving accuracy curves.
     if kwargs.get("metric_col") is None and len(named_metrics) >= 2:
         shared = [h for h in header if h not in named_metrics]
-        import tempfile
         tables = []
         for mc in named_metrics:
             with tempfile.NamedTemporaryFile("w", suffix=".csv", delete=False, newline="") as tmp:
@@ -382,7 +421,6 @@ def read_tables(path, **kwargs):
         tables = []
         for mc in true_metrics:
             # build a one-metric CSV: the index/label/axis columns + this single metric
-            import tempfile
             keep = index_cols + [mc]
             tmp = tempfile.NamedTemporaryFile("w", suffix=".csv", delete=False, newline="")
             w = csv.writer(tmp)

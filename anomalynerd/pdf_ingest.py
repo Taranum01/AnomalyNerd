@@ -189,6 +189,57 @@ def _looks_like_shredded_caption(row) -> bool:
         return False
     return caption_marker
 
+_TOTAL_LABELS = {"total", "sum", "grand total"}
+# two numbers in one cell ('29.13 35.25', '7B 30B'): the extractor merged two rows' cells
+FUSED_CELL = re.compile(r"^\s*-?\d+(?:\.\d*)?[%MB]?(?:\s+-?\d+(?:\.\d*)?[%MB]?)+\s*$")
+_THOUSANDS = re.compile(r"^\s*\d{1,3}(?:\s\d{3})+\s*$")
+
+
+def is_fused(cell):
+    """True when a cell holds two or more separate numbers (not spaced thousands)."""
+    return isinstance(cell, str) and bool(FUSED_CELL.match(cell)) and not _THOUSANDS.match(cell)
+
+
+def _pair(cell):
+    """True when a fused cell holds exactly two numbers, the only case that can be split."""
+    return is_fused(cell) and len(cell.split()) == 2
+
+
+def _unfuse_rows(body):
+    """Repair cells where the extractor merged two rows' numbers into one cell. If the cell
+    below (or above) is empty, one number moves into it. If every number in a row is
+    fused, the row is split into two rows (text labels are copied to both). Returns the
+    repaired rows and how many cells were repaired; anything left fused is untouched."""
+    rows = [list(r) for r in body]
+    fixed = 0
+    for i in range(len(rows)):
+        for j, c in enumerate(rows[i]):
+            if not _pair(c):
+                continue
+            a, b = c.split()
+            if i + 1 < len(rows) and j < len(rows[i + 1]) and rows[i + 1][j].strip() == "":
+                rows[i][j], rows[i + 1][j] = a, b
+                fixed += 1
+            elif i > 0 and j < len(rows[i - 1]) and rows[i - 1][j].strip() == "":
+                rows[i - 1][j], rows[i][j] = a, b
+                fixed += 1
+    out = []
+    for r in rows:
+        nums = [c for c in r if is_fused(c) or (c.strip() and _numeric_fraction([c]) == 1.0)]
+        if nums and all(_pair(c) for c in nums):
+            top, bottom = [], []
+            for c in r:
+                if _pair(c):
+                    a, b = c.split()
+                    top.append(a); bottom.append(b); fixed += 1
+                else:
+                    top.append(c); bottom.append(c)
+            out += [top, bottom]
+        else:
+            out.append(r)
+    return out, fixed
+
+
 _SIZE_CELL = re.compile(r"^\d+(?:\.\d+)?\s?[kKMB]$")
 
 
@@ -359,9 +410,21 @@ def _assess_and_tidy(tbl, page, idx, structured=False) -> ExtractedTable:
     try:
         tmp = tempfile.NamedTemporaryFile("w", suffix=".csv", delete=False, newline="")
         w = csv.writer(tmp); w.writerow(clean_header)
+        # repair cells that hold two rows' numbers (only on a table that passed every gate)
+        body, unfused = _unfuse_rows(body)
+        if unfused:
+            et.rows = body
+            et.caveats.append(f"{unfused} cell(s) holding two rows' numbers were split back into their rows")
+        # a 'Total' row is computed from the rows above it, not a measurement, so it is
+        # shown in the extracted table but left out of the checks
+        totals = [r for r in body if r and r[0].strip().lower() in _TOTAL_LABELS]
         for r in body:
+            if r in totals:
+                continue
             w.writerow(r)
         tmp.close()
+        if totals:
+            et.caveats.append(f"{len(totals)} total row(s) left out of the checks")
         tidies = read_tables(tmp.name, name=f"page{page}_table{idx}")
         os.unlink(tmp.name)
         et.tidies = tidies

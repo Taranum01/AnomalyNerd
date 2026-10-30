@@ -43,6 +43,12 @@ import re as _re
 _PARAM_COUNT = _re.compile(r"^\s*\d[\d.,]*\s*[MB]\s*$")
 
 
+def _has_fused_cells(table):
+    """True when a cell still holds two separate numbers after repair, so rows are misaligned."""
+    from .pdf_ingest import is_fused
+    return any(is_fused(c) for r in (table.rows or []) for c in r)
+
+
 def _is_param_count_column(tidy):
     """True when the metric column is a list of model sizes (7B, 30B, 937M): every number in
     it carries an M or B suffix and the header names parameters or is blank. The largest
@@ -106,6 +112,11 @@ def _analyze_parse(path, parse, expect_flat, source_kind="pdf", detector_seconds
         page = getattr(t, "page", 0)
         where = _loc(source_kind, page, t.index_on_page)
         tidies = getattr(t, "tidies", None) or ([t.tidy] if t.tidy is not None else [])
+        if t.status in ("ok", "partial") and tidies and _has_fused_cells(t):
+            res.could_not_check.append(
+                f"{where} ({t.n_rows}x{t.n_cols}): some cells hold two numbers, so rows are "
+                f"misaligned; not analyzed")
+            continue
         if t.status in ("ok", "partial") and tidies:
             for mi, tidy in enumerate(tidies):
                 key = (page, t.index_on_page, mi)

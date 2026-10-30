@@ -676,8 +676,9 @@
   "type": "point_outlier",
   "suggestion": "Single test.score value 38.5 at {'ADE20K.Method': 'ACNet [24]', 'ADE20K.Backbone': 'ResNet-101', 'FLOPs.': '', '_raw': '38.5'} stands out from every other value in the table — you may want to investigate.",
   "source": "arXiv:2103.14030",
-  "category": "false_alarm",
-  "reason": "a sparse column, mostly '-', so one value looks extreme"
+  "category": "real_worth_a_look",
+  "reason": "read correctly (PDF page 7: ACNet test score 38.5); the other five test scores are 55.1 to 62.8 and the table gives no reason for the gap",
+  "relabeled": "was false_alarm; re-checked against the PDF"
  },
  {
   "paper": "swin",
