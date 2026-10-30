@@ -963,14 +963,45 @@ def detect_point_outliers(t: TidyTable, z_thresh=3.5, min_points=5):
             if len(outside) == 1:
                 r, v = allvals[outside[0]]
                 coords = {k: val for k, val in r.items() if k != "value"}
+                col_scale = _column_wide_scale_difference(t, allvals, ys_eval, outside[0])
+                note = (" Every value in this column is on the same side, so the column may simply "
+                        "be a different task or scale; check the column rather than this cell."
+                        if col_scale else "")
                 flags.append(Flag(
                     type="point_outlier", table=t.name, axis=None, coords=coords,
-                    detail={"value": v, "mode": "whole_table", "log_scale": is_log},
+                    detail={"value": v, "mode": "whole_table", "log_scale": is_log,
+                            "column_scale": col_scale},
                     strength=9.0, support=1.0,
                     suggestion=f"Single {t.metric_name} value {v:g} at {coords} stands out "
-                               f"from every other value in the table — you may want to investigate.",
+                               f"from every other value in the table — you may want to investigate."
+                               + note,
                 ))
     return flags
+
+
+def _column_wide_scale_difference(t, allvals, ys_eval, idx):
+    """True when the flagged cell is not alone: every number in its column lies beyond the same
+    quartile of the whole table, so the column is a different task or scale (a GLUE table puts
+    CoLA at 63-68 beside MNLI at 88-90). Needs a wide table (3+ columns, 3+ rows). A cell whose
+    ROW is low across the table is not covered, so a system that is low everywhere stays flagged."""
+    col_axis = t.entity_axis
+    if col_axis not in t.axes:
+        return False
+    row_axes = [a for a in t.axes if a != col_axis]
+    if len(row_axes) != 1 or len(t.levels(col_axis)) < 3 or len(t.levels(row_axes[0])) < 3:
+        return False
+    r0 = allvals[idx][0]
+    col = [i for i, (r, _) in enumerate(allvals) if r.get(col_axis) == r0.get(col_axis)]
+    if len(col) < 3:
+        return False
+    srt = sorted(ys_eval)
+    q1 = srt[len(srt) // 4]
+    q3 = srt[(3 * len(srt)) // 4]
+    if ys_eval[idx] < q1:
+        return all(ys_eval[i] < q1 for i in col)
+    if ys_eval[idx] > q3:
+        return all(ys_eval[i] > q3 for i in col)
+    return False
 
 
 ALL_DETECTORS.append(detect_point_outliers)
