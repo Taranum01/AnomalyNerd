@@ -85,7 +85,7 @@ so. On a paired sample, PDF table coverage rose from 0%
 
 Run the tests:
 ```bash
-pytest -q    # 155 tests across 11 test files, under a minute
+pytest -q    # runs the full test suite in under a minute
 ```
 
 ---
