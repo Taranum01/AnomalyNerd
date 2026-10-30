@@ -28,6 +28,8 @@ def score(flags: list[Flag]) -> list[Flag]:
             hi = s >= 5 and sup >= 0.5; med = s >= 5 or (s >= 2 and sup >= 0.5)
         elif f.type == "flatness":
             hi = False; med = True
+        elif f.type == "unit_mismatch":
+            hi = True; med = True
         elif f.type == "point_outlier":
             hi = s >= 6; med = s >= 3.5
         elif f.type == "monotonicity":

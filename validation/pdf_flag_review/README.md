@@ -99,13 +99,20 @@ also bring in new flags.
 7. **Small tables printed side by side** and read as one. When every header is 'Group.Sub' and
    the groups repeat the same sub-columns, each group is checked as its own table.
 
+One new check was added at the same time:
+
+8. **Unit typos.** A column where every value carries the same unit (M) except one (G), whose
+   number lies inside the range of the others, is flagged. On the YOLOv7 paper (Table 2, page 7)
+   it finds YOLOR-W6 listed with 79.8G parameters among values from 1.9M to 154.7M, an error in
+   the paper. Columns whose values really span units (125M to 175B) are not flagged.
+
 Counts with all fixes, against the hand labels. Flags that appear only after a fix were checked
 against the PDF and labelled too (marked `added` in `labels.json`).
 
 | set | flags | false alarm | real, explained | real, worth a look |
 |---|---|---|---|---|
 | development, before | 104 | 22 | 55 | 27 |
-| development, after | 87 | 1 | 52 | 34 |
+| development, after | 88 | 1 | 53 | 34 |
 | held-out, before | 74 | 15 | 48 | 11 |
 | held-out, after | 53 | 0 | 42 | 11 |
 
@@ -129,5 +136,9 @@ flags (14 false alarms, 4 explained) and added none. The other five fixes were t
 fresh sets. On the first set they removed one explained flag and added one explained flag. On
 `fresh2_papers.json`, never used before, they removed 14 of 58 flags (3 false alarms from a
 shredded table, 4 Total-row flags, one digit-test note, and 6 explained flags that reappear in a
-new form) and added 6 (those re-expressions). No flag worth a look was lost on either fresh set. The flags that
+new form) and added 6 (those re-expressions). No flag worth a look was lost on either fresh set.
+
+The unit-typo check adds one flag on the development set (LoRA, page 23: full fine-tuning
+trains all 175B parameters, a real value labelled explained) and one on `fresh2_papers.json` (the
+YOLOv7 error above). It adds nothing else on any set. The flags that
 did not change on the fresh sets have not been labelled.

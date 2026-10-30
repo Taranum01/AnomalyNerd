@@ -218,5 +218,16 @@
   "suggestion": "value increases as Model Size increases (roughly linear, Pearson r=0.98, 95% CI [0.78, 1.00]); value goes from 32 to 256.",
   "category": "real_explained",
   "reason": "GPU count and GPU-hours grow with model size, by design"
+ },
+ {
+  "set": "fresh2",
+  "change": "added",
+  "paper": "yolov7",
+  "page": 7,
+  "type": "unit_mismatch",
+  "suggestion": "#Param. is '79.8G' for YOLOR-W6 [81], but every other value in the column is in M (1.9M to 154.7M); check the unit.",
+  "category": "real_worth_a_look",
+  "reason": "unit typo in the paper (Table 2, page 7): YOLOR-W6 #Param. printed as 79.8G among values in M",
+  "fix": "unit-typo check"
  }
 ]

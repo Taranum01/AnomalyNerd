@@ -43,6 +43,51 @@ import re as _re
 _PARAM_COUNT = _re.compile(r"^\s*\d[\d.,]*\s*[MB]\s*$")
 
 
+_UNIT_CELL = _re.compile(r"^\s*(\d+(?:\.\d+)?)\s*([kKMGTB])\s*$")
+
+
+def _unit_mismatches(table, min_cells=5):
+    """Flag a likely unit typo: in a column where every value carries the same unit suffix
+    (e.g. M) except one (e.g. G), and that one's number lies inside the range of the others,
+    the odd unit is probably a typo (79.8G among 1.9M to 154.7M). A column that mixes units
+    because the values really span them (125M to 175B) is not flagged: there the odd values
+    fall outside the others' range."""
+    from .model import Flag
+    flags = []
+    header = list(table.header or [])
+    rows = table.rows or []
+    for j, col in enumerate(header):
+        cells = []
+        for r in rows:
+            m = _UNIT_CELL.match(r[j]) if j < len(r) and isinstance(r[j], str) else None
+            if m:
+                cells.append((r, r[j].strip(), float(m.group(1)), m.group(2)))
+        if len(cells) < min_cells:
+            continue
+        units = {}
+        for c in cells:
+            units.setdefault(c[3], []).append(c)
+        if len(units) != 2:
+            continue
+        (u_main, main), (u_odd, odd) = sorted(units.items(), key=lambda kv: -len(kv[1]))
+        if len(odd) != 1 or len(main) < min_cells - 1:
+            continue
+        r, raw, num, _ = odd[0]
+        lo, hi = min(c[2] for c in main), max(c[2] for c in main)
+        if not lo <= num <= hi:
+            continue
+        label = next((c for c in r if isinstance(c, str) and c.strip() and not _UNIT_CELL.match(c)), "")
+        flags.append(Flag(
+            type="unit_mismatch", table=getattr(table, "name", "") or "", axis=col,
+            coords={"row": label, "column": col},
+            detail={"value": raw, "unit": u_odd, "column_unit": u_main, "range": [lo, hi]},
+            strength=1.0, support=1.0,
+            suggestion=(f"{col} is '{raw}' for {label}, but every other value in the column is in "
+                        f"{u_main} ({lo:g}{u_main} to {hi:g}{u_main}); check the unit."),
+        ))
+    return flags
+
+
 def _has_fused_cells(table):
     """True when a cell still holds two separate numbers after repair, so rows are misaligned."""
     from .pdf_ingest import is_fused
@@ -142,6 +187,9 @@ def _analyze_parse(path, parse, expect_flat, source_kind="pdf", detector_seconds
                 res.table_flags[key] = flags
                 if not is_pathological(tidy):
                     res.stat_findings += digit_tests(tidy)
+            unit_flags = score(_unit_mismatches(t))
+            if unit_flags:
+                res.table_flags.setdefault((page, t.index_on_page, 0), []).extend(unit_flags)
         elif t.status == "non_table":
             # metadata/cover-sheet/prose block mis-detected as a table: not a results table,
             # so drop it silently (counted below) rather than cluttering "could not check".

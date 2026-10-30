@@ -1223,5 +1223,16 @@
   "reason": "ChatGPT profession-sentiment score far above every pretrained model (Table 50, page 74)",
   "source": "arXiv:2307.09288",
   "added": "appears after the fused-cell, total-row and side-by-side fixes"
+ },
+ {
+  "paper": "lora",
+  "page": 23,
+  "priority": "HIGH",
+  "type": "unit_mismatch",
+  "suggestion": "# Trainable Parameters is '175B' for Fine-Tune, but every other value in the column is in M (0.4M to 603.8M); check the unit.",
+  "category": "real_explained",
+  "reason": "read correctly (Table 15, page 23): full fine-tuning trains all 175B parameters of GPT-3",
+  "source": "arXiv:2106.09685",
+  "added": "appears with the unit-typo check"
  }
 ]

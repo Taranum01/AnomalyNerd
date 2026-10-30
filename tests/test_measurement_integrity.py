@@ -153,3 +153,22 @@ def test_fused_cells_split_back_into_rows():
     assert n == 0 and kept[0][2] == "29.13 35.25"
     up, n = _unfuse_rows([["YOLOR-E6", "683.2G", ""], ["YOLOR-D6", "935.6G", "45 34"]])
     assert n == 1 and [r[2] for r in up] == ["45", "34"]
+
+
+def test_unit_typo_is_flagged():
+    from types import SimpleNamespace as NS
+    from anomalynerd.analyze_pdf import _unit_mismatches
+    rows = [["YOLOR-CSP", "52.9M"], ["YOLOR-P6", "37.2M"], ["YOLOR-W6", "79.8G"],
+            ["YOLOR-E6", "115.8M"], ["YOLOR-D6", "151.7M"], ["YOLOv7", "36.9M"]]
+    flags = _unit_mismatches(NS(header=["Model", "#Param."], rows=rows))
+    assert len(flags) == 1 and flags[0].detail["value"] == "79.8G"
+    assert "YOLOR-W6" in flags[0].suggestion
+
+
+def test_real_mixed_units_are_not_flagged():
+    from types import SimpleNamespace as NS
+    from anomalynerd.analyze_pdf import _unit_mismatches
+    sizes = ["125M", "350M", "760M", "1.3B", "2.7B", "6.7B"]
+    assert _unit_mismatches(NS(header=["Size"], rows=[[s] for s in sizes])) == []
+    flops = ["4.5G", "16.5G", "49.0G", "109.1G", "205.7G", "1.2T"]
+    assert _unit_mismatches(NS(header=["FLOPs"], rows=[[s] for s in flops])) == []
