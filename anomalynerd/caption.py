@@ -20,6 +20,7 @@ A target word budget can also be given; the longest level under the budget is us
 from __future__ import annotations
 from .model import TidyTable, Flag
 from .analyze import analyze
+from .detectors import _order_word
 
 
 # ----------------------------------------------------------------- phrasing per pattern
@@ -57,7 +58,7 @@ def _pattern_phrase_unscoped(f: Flag, t: TidyTable) -> str:
         if d.get("well_fit_by_line") and pear is not None:
             phrase += f" (roughly linear, Pearson r={pear}{_ci(pci)})"
         elif spear is not None:
-            phrase += (f" (monotonic, Spearman rho={spear}{_ci(sci)}; not well described by a "
+            phrase += (f" ({_order_word(mono) if mono else 'monotonic'}, Spearman rho={spear}{_ci(sci)}; not well described by a "
                        f"straight line" + (f", Pearson r={pear}{_ci(pci)}" if pear is not None else "") + ")")
         return phrase + f", from {start} to {end}"
     if f.type == "level_shift":

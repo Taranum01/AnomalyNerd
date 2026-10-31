@@ -116,13 +116,13 @@ def _loc(kind, page, idx):
     return f"page {page} (#{idx})" if page else f"table #{idx}"
 
 
-def analyze_pdf(path: str, expect_flat=None) -> PdfAnalysis:
+def analyze_pdf(path: str, expect_flat=None, fused_recovery=None) -> PdfAnalysis:
     """Parse a PDF and analyze its tables and reported statistics."""
-    parse = parse_pdf(path)
+    parse = parse_pdf(path, fused_recovery=fused_recovery)
     return _analyze_parse(path, parse, expect_flat, source_kind="pdf")
 
 
-def analyze_source(path: str, expect_flat=None, detector_seconds=4.0, checkpoint_dir=None) -> PdfAnalysis:
+def analyze_source(path: str, expect_flat=None, detector_seconds=4.0, checkpoint_dir=None, fused_recovery=None) -> PdfAnalysis:
     """Analyze a PDF, LaTeX, Word (.docx) or Excel (.xlsx) file, dispatching on extension. LaTeX source gives
     far cleaner table extraction than a compiled PDF, so prefer it when available."""
     low = path.lower()
@@ -141,7 +141,7 @@ def analyze_source(path: str, expect_flat=None, detector_seconds=4.0, checkpoint
         from .office_ingest import parse_xlsx
         parse = parse_xlsx(path)
         return _analyze_parse(path, parse, expect_flat, source_kind="xlsx", detector_seconds=detector_seconds, checkpoint_dir=checkpoint_dir)
-    parse = parse_pdf(path)
+    parse = parse_pdf(path, fused_recovery=fused_recovery)
     return _analyze_parse(path, parse, expect_flat, source_kind="pdf", detector_seconds=detector_seconds, checkpoint_dir=checkpoint_dir)
 
 

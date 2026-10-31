@@ -25,6 +25,7 @@ import pdfplumber
 
 from .ingest import read_csv, read_tables, _parse_number, _looks_numeric
 from .model import MISSING, TidyTable
+from .text_layer_tables import recover as _recover_text_layer
 
 
 # ----------------------------------------------------------------- data classes
@@ -463,8 +464,21 @@ def _extract_stat_strings(text: str) -> list:
 
 
 # ----------------------------------------------------------------- main entry
-def parse_pdf(path: str) -> PdfParse:
-    """Extract tables and reported statistic strings from a PDF."""
+def fused_recovery_enabled(flag=None) -> bool:
+    """Opt-in switch for fused-cell recovery. An explicit True/False wins; None reads the
+    ANOMALYNERD_FUSED_RECOVERY environment variable (1, true or yes turns it on). Off by default."""
+    if flag is not None:
+        return bool(flag)
+    return os.environ.get("ANOMALYNERD_FUSED_RECOVERY", "").strip().lower() in ("1", "true", "yes")
+
+
+def parse_pdf(path: str, fused_recovery=None) -> PdfParse:
+    """Extract tables and reported statistic strings from a PDF.
+
+    fused_recovery: opt-in (default off). When on, a table whose cells still hold two numbers
+    after repair is retried with the layout model and the PDF text layer. When off, output is
+    the same as before this option existed."""
+    fused_on = fused_recovery_enabled(fused_recovery)
     tables = []
     stat_strings = []
     text_pages = 0
@@ -530,7 +544,11 @@ def parse_pdf(path: str) -> PdfParse:
     # true table region, so it can recover a clean results table that pdfplumber merged with
     # prose. Clean Docling tables are ADDED; the merged pdfplumber stand-ins they replace are
     # dropped (we keep them only if Docling recovers nothing, so the gap is still reported).
-    if usable_so_far == 0 or merged_tables:
+    # A table whose cells still hold two numbers after repair has misaligned rows and cannot be
+    # analyzed; the layout model can often read the same page cleanly, so try it for those too.
+    fused_tables = [t for t in tables if t.status in ("ok", "partial")
+                    and any(is_fused(c) for r in (t.rows or []) for c in r)] if fused_on else []
+    if usable_so_far == 0 or merged_tables or fused_tables:
         docling_tables, docling_note = _try_docling(path)
         if docling_note:
             notes.append(docling_note)
@@ -559,7 +577,8 @@ def parse_pdf(path: str) -> PdfParse:
                                     "it; not analyzed")
                 tables = [t for t in tables if t.status != "merged"] + fresh_docling
             else:
-                tables = tables + docling_tables
+                tables = (_add_layout_tables(tables, docling_tables, fused_tables)
+                          if fused_on else tables + docling_tables)
         else:
             # Docling recovered nothing: downgrade the merged markers to an honest "could not
             # separate" skip so they are reported (not silently dropped, not falsely analyzed).
@@ -567,6 +586,8 @@ def parse_pdf(path: str) -> PdfParse:
                 t.status = "skipped"
                 t.reason = ("a results table was detected but it is merged with surrounding "
                             "text and the layout model could not isolate it; not analyzed")
+        if fused_on:
+            tables = _recover_fused_from_text_layer(path, tables, fused_tables, notes)
         _unique_docling_indices(tables)
 
     if not tables:
@@ -579,6 +600,83 @@ def parse_pdf(path: str) -> PdfParse:
             seen.add(s); uniq.append(s)
     return PdfParse(path=path, n_pages=n_pages, tables=tables,
                     stat_strings=uniq, text_pages=text_pages, notes=notes)
+
+
+def _n_numeric(et) -> int:
+    return sum(_numeric_multiset(et.rows).values())
+
+
+def _covers(recovered, other) -> bool:
+    """True when at least half of the recovered table's numbers also appear in `other`, so the
+    two describe the same table (a few coincidental shared values do not count)."""
+    a = _numeric_multiset(recovered.rows)
+    b = _numeric_multiset(other.rows)
+    shared = sum(min(a[v], b[v]) for v in a.keys() & b.keys())
+    return shared >= max(4, 0.5 * sum(a.values()))
+
+
+def _recover_fused_from_text_layer(path, tables, fused_tables, notes):
+    """Last resort for pages where a pdfplumber table had fused cells: read the text layer.
+
+    recover() returns a table only when every data line carries the same count of numbers and
+    a header with one label per column sits above it (else it refuses). A recovered table
+    replaces the tables on its page that share its numbers only when it holds MORE numbers
+    than they do; an equally complete table from another extractor is kept as is."""
+    pages = sorted({t.page for t in fused_tables})
+    if not pages:
+        return tables
+    try:
+        pdf = pdfplumber.open(path)
+    except Exception:
+        return tables
+    with pdf:
+        for pg in pages:
+            try:
+                got, why = _recover_text_layer(pdf.pages[pg - 1].extract_words(x_tolerance=1.5))
+            except Exception as e:
+                notes.append(f"page {pg}: text-layer recovery raised {type(e).__name__}")
+                continue
+            for w in why:
+                notes.append(f"page {pg}: text-layer recovery: {w}")
+            for raw in got:
+                et = _assess_and_tidy(raw, pg, 0)
+                if et.status not in ("ok", "partial") or et.tidy is None:
+                    continue
+                if any(is_fused(c) for r in et.rows for c in r):
+                    continue
+                same = [t for t in tables if getattr(t, "page", None) == pg
+                        and t.backend != "text-layer" and _covers(et, t)]
+                if any(t.status == "ok" and t.tidy is not None
+                       and _n_numeric(t) >= _n_numeric(et) for t in same):
+                    continue
+                et.backend = "text-layer"
+                et.source_path = path
+                et.caveats = list(et.caveats) + [
+                    "read from the PDF text layer: every row has the same count of numbers "
+                    "as the header has columns"]
+                tables = [t for t in tables if not any(t is x for x in same)] + [et]
+    return tables
+
+
+def _add_layout_tables(tables, layout_tables, fused_tables):
+    """Combine pdfplumber tables with the layout model's tables when none is merged with prose.
+
+    A layout table identical to a pdfplumber table (same header and rows) is not added twice.
+    A fused-cell pdfplumber table is dropped only when the layout model returned a table on
+    its page; every other pdfplumber table, on that page or elsewhere, is kept. A fused table
+    on a page the layout model could not read stays, so it is still reported as not analyzed."""
+    sigs = {(tuple(t.header), tuple(tuple(r) for r in t.rows)) for t in tables}
+    fresh = []
+    for dt in layout_tables:
+        sig = (tuple(dt.header), tuple(tuple(r) for r in dt.rows))
+        if sig in sigs:
+            continue
+        sigs.add(sig)
+        fresh.append(dt)
+    layout_pages = {getattr(dt, "page", None) for dt in layout_tables}
+    kept = [t for t in tables
+            if not (any(t is f for f in fused_tables) and getattr(t, "page", None) in layout_pages)]
+    return kept + fresh
 
 
 def _try_docling(path: str):
