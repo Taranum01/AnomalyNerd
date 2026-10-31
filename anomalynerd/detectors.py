@@ -1072,6 +1072,16 @@ def detect_trends(t: TidyTable, r2_min=0.5, min_points=6, index_axes=None, expec
     return flags
 
 
+def _order_word(mono):
+    """How to describe the order of a series whose direction _monotonic_direction gave as `mono`:
+    strictly ordered, ordered with ties, or not ordered (rank correlation only)."""
+    if mono in ("increasing", "decreasing"):
+        return "monotonic"
+    if mono in ("non_decreasing", "non_increasing"):
+        return "monotonic with ties"
+    return "not monotonic"
+
+
 def _relationship_suggestion(metric, ax_name, direction, ys, pearson, spearman,
                              well_linear, is_expected_flat, pearson_ci=None, spearman_ci=None):
     """Describe the relationship first; only append an investigation prompt (with a reason)
@@ -1086,7 +1096,7 @@ def _relationship_suggestion(metric, ax_name, direction, ys, pearson, spearman,
         if well_linear:
             desc += f" (roughly linear, Pearson r={pearson:.2f}{_ci(pearson_ci)})"
         elif spearman is not None:
-            desc += (f" (monotonic, Spearman rho={spearman:.2f}{_ci(spearman_ci)}; "
+            desc += (f" ({_order_word(_monotonic_direction(ys))}, Spearman rho={spearman:.2f}{_ci(spearman_ci)}; "
                      f"not well described by a straight line, Pearson r={pearson:.2f}{_ci(pearson_ci)})")
     desc += f"; {metric} goes from {ys[0]:.0f} to {ys[-1]:.0f}."
     if is_expected_flat:
