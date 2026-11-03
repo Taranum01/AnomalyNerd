@@ -196,9 +196,14 @@ def _plain_phrase(f, t):
     return f"{phrase} ({scope})" if scope else phrase
 
 
-_COST_WORDS = ("flop", "param", "size", "time", "step", "speed", "hardware", "batch", "memory",
-               "latency", "throughput", "gpu", "tpu", "token", "layer", "dim", "head", "lr",
-               "learning rate", "epoch", "#")
+# Whole words that mark a model or cost column. A word matches when it equals one of these
+# (optionally plural) or starts with one of the stems, so "Params (M)", "GPU hours" and "FLOPs"
+# are settings but "Sentiment" (contains "time"), "Headline" (contains "head") and "Timeline"
+# are results.
+_COST_WORDS = ("size", "time", "step", "hardware", "batch", "gpu", "tpu", "token", "layer", "dim",
+               "head", "lr", "epoch", "hour", "second", "minute")
+_COST_STEMS = ("flop", "param", "latenc", "throughput", "memor", "speed", "hyperparam",
+               "dimension")
 
 
 def _is_setting_column(name):
@@ -208,7 +213,12 @@ def _is_setting_column(name):
     low = (name or "").lower()
     if re.fullmatch(r"d[\s_]?[a-z]{1,5}|hidden|width|depth|n|k|h", low.strip()):
         return True   # dimension-style names: d_model, dk, dff, hidden
-    return any(w in low for w in _COST_WORDS)
+    if "#" in low or "learning rate" in low:
+        return True
+    for word in re.findall(r"[a-z]+", low):
+        if word.startswith(_COST_STEMS) or any(word in (w, w + "s", w + "es") for w in _COST_WORDS):
+            return True
+    return False
 
 
 def _what_to_check(t: TidyTable, flags):

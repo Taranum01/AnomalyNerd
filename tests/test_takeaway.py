@@ -174,3 +174,30 @@ def test_web_analyze_returns_takeaways():
     assert tks and tks[0]["table"] == "co2_annual"
     joined = " ".join(tks[0]["sentences"])
     assert "unc is identical across year" in joined and "value is identical" not in joined
+
+
+@pytest.mark.parametrize("name", ["Params", "Params (M)", "#Params", "FLOPs", "Training time",
+                                  "Step count", "Batch size", "GPU hours", "Learning rate",
+                                  "Tokens", "d_model", "Latency (ms)", "Memory", "Layers"])
+def test_cost_columns_are_settings(name):
+    from anomalynerd.takeaway import _is_setting_column
+    assert _is_setting_column(name)
+
+
+@pytest.mark.parametrize("name", ["Sentiment", "Headline", "Timeline", "Maritime", "Overhead",
+                                  "Accuracy", "SST", "F1", "Dimitrov"])
+def test_result_columns_that_contain_a_cost_word_are_not_settings(name):
+    from anomalynerd.takeaway import _is_setting_column
+    assert not _is_setting_column(name)
+
+
+def test_sentiment_column_still_gets_a_winner(tmp_path):
+    tidies = read_tables(write(tmp_path, ["System", "Sentiment"], [["A", 91], ["B", 80], ["C", 75]]))
+    tk = table_takeaway(tidies, [analyze(td) for td in tidies])
+    assert tk and tk[0] == "A has the highest Sentiment (91), ahead of B (80)."
+
+
+def test_params_column_still_has_no_winner(tmp_path):
+    tidies = read_tables(write(tmp_path, ["System", "Params"], [["A", 91], ["B", 80], ["C", 75]]))
+    tk = table_takeaway(tidies, [analyze(td) for td in tidies])
+    assert not any("has the highest" in s for s in tk)
