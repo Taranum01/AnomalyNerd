@@ -48,7 +48,7 @@ def expand_project(path: str, max_depth=20, max_bytes=5_000_000):
             child = (file.parent / name).resolve()
             if not child.suffix: child = child.with_suffix(".tex")
             return visit(child, stack + [file])
-        return re.sub(r"\\(?:input|include)\s*(?:\{([^{}]+)\}|([^\s%{}]+))", sub, text)
+        return re.sub(r"\\(?:input|include)(?![A-Za-z])\s*(?:\{([^{}]+)\}|([^\s%{}]+))", sub, text)
     expanded = visit(Path(path).resolve(), [])
     return expanded, included, issues
 
