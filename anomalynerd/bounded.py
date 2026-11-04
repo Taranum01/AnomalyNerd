@@ -4,7 +4,7 @@ import hashlib,json,os,pickle,subprocess,sys,tempfile,time
 from dataclasses import asdict
 from pathlib import Path
 from . import detectors
-from .model import Flag
+from .model import Flag,is_num
 from .analyze import score,is_pathological,_suppress_index_axis,_suppress_jumps_adjacent_to_outliers
 
 DETECTORS = ('detect_numeric_jumps','detect_win_reversals','detect_monotonicity',
@@ -75,6 +75,43 @@ def _run_bounded_one(name, table, expect_flat, seconds):
         return {'status': 'failed', 'reason': 'detector subprocess failure: ' + type(exc).__name__ + ': ' + str(exc), 'flags': []}
 
 
+def _usable_checkpoint(cached, digest, name):
+    """A completed cache entry is evidence only when its result schema is usable.
+
+    Invalid or partial local JSON is a cache miss, not an empty successful run.
+    Validate before accepting it so only that detector is recomputed.
+    """
+    if not isinstance(cached, dict):
+        return False
+    if (cached.get('key') != digest or cached.get('detector') != name
+            or cached.get('status') != 'completed'):
+        return False
+    flags = cached.get('flags')
+    notes = cached.get('notes', [])
+    if not isinstance(flags, list) or not isinstance(notes, list):
+        return False
+    if any(not isinstance(note, str) for note in notes):
+        return False
+    for raw in flags:
+        if not isinstance(raw, dict):
+            return False
+        try:
+            flag = Flag(**raw)
+        except TypeError:
+            return False
+        if not isinstance(flag.type, str) or not isinstance(flag.table, str):
+            return False
+        if flag.axis is not None and not isinstance(flag.axis, str):
+            return False
+        if not isinstance(flag.coords, dict) or not isinstance(flag.detail, dict):
+            return False
+        if not is_num(flag.strength) or not is_num(flag.support):
+            return False
+        if not isinstance(flag.priority, str) or not isinstance(flag.suggestion, str):
+            return False
+    return True
+
+
 def run_bounded(table,seconds=4.0,checkpoint_dir=None,expect_flat=None):
     """Run each detector with a time limit. Reuses saved results from checkpoint_dir when the table, detector code and settings are unchanged."""
     if not 0 < seconds <= 300: raise ValueError('detector time limit must be in (0,300] seconds')
@@ -89,7 +126,7 @@ def run_bounded(table,seconds=4.0,checkpoint_dir=None,expect_flat=None):
         if path and path.exists():
             try:
                 cached=json.loads(path.read_text())
-                if cached.get('key')==digest and cached.get('detector')==name and cached.get('status')=='completed':record=cached
+                if _usable_checkpoint(cached, digest, name):record=cached
             except (OSError,ValueError): pass
         if record is None:
             started=time.monotonic()
