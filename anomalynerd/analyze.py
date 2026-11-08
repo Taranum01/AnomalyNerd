@@ -5,6 +5,10 @@ from .model import TidyTable, Flag
 from . import detectors
 
 
+PRIORITY_NOTE = ("Priority describes detector strength and rule support, not a calibrated likelihood "
+                 "of a research error or usefulness to a reviewer. HIGH is not necessarily more "
+                 "useful than MEDIUM, especially across different checks.")
+
 def score(flags: list[Flag]) -> list[Flag]:
     """Set each flag's priority (HIGH, MEDIUM or LOW) from its strength and support, then return the flags."""
     for f in flags:

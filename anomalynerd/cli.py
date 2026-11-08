@@ -13,7 +13,7 @@ The tool POINTS at what deserves a closer look; it does not diagnose or re-run a
 """
 import argparse, json, sys
 from .ingest import read_csv
-from .analyze import analyze
+from .analyze import analyze, PRIORITY_NOTE
 
 
 _PRIO_MARK = {"HIGH": "!!", "MEDIUM": "! ", "LOW": "  "}
@@ -28,6 +28,7 @@ def _fmt_report(flags, table_name):
     for f in flags:
         counts[f.priority] = counts.get(f.priority, 0) + 1
     lines.append("Summary: " + ", ".join(f"{k}={counts[k]}" for k in ("HIGH", "MEDIUM", "LOW") if k in counts))
+    lines.append(PRIORITY_NOTE)
     lines.append("")
     for f in flags:
         mark = _PRIO_MARK.get(f.priority, "  ")

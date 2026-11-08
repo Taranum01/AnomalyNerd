@@ -15,7 +15,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from .pdf_ingest import parse_pdf
-from .analyze import analyze, is_pathological, score
+from .analyze import analyze, is_pathological, score, PRIORITY_NOTE
 from .stat_tests import statcheck, grim, grimmer, digit_tests
 from .cross_table import find_cross_table_inconsistencies
 
@@ -266,6 +266,7 @@ def format_report(res: PdfAnalysis) -> str:
     L.append("Detector coverage: " + ", ".join(f"{k}={v}" for k,v in sorted(counts.items())))
     L.append("Extraction coverage: " + ", ".join(f"{status}={sum(t.status == status for t in p.tables)}" for status in ('ok','partial','skipped','non_table')))
     L.append("Raw flags are review suggestions, not research errors. Repeated baselines may be intentional.")
+    L.append(PRIORITY_NOTE)
     if getattr(p, 'included_files', None): L.append("Included source files: " + ", ".join(p.included_files))
     L.append("")
 
