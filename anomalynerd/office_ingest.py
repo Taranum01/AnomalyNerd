@@ -86,7 +86,8 @@ def parse_docx(path: str) -> PdfParse:
 
 def parse_xlsx(path: str) -> PdfParse:
     """Parse an Excel workbook: every non-empty worksheet becomes a candidate results table.
-    Formulas are read as their last computed values (what the user sees)."""
+    Cached formula results are used without recalculation. A sheet with a formula
+    lacking a cached value is reported as skipped, not analyzed as blank data."""
     notes = []
     try:
         import openpyxl
@@ -95,15 +96,46 @@ def parse_xlsx(path: str) -> PdfParse:
                         notes=["openpyxl is not installed, so Excel sheets could not be read; "
                                "`pip install openpyxl` to enable .xlsx input"])
     wb = openpyxl.load_workbook(path, data_only=True, read_only=True)
-    raw_tables = []
+    formulas = None
+    raw_tables, unavailable = [], {}
     try:
-        for si, ws in enumerate(wb.worksheets, start=1):
-            grid = [[_cell_text(v) for v in row] for row in ws.iter_rows(values_only=True)]
-            grid = _trim_grid(grid)
-            if grid:
-                raw_tables.append((si, grid))   # "page" = sheet number
+        formulas = openpyxl.load_workbook(path, data_only=False, read_only=True)
+        for si, (ws, formula_ws) in enumerate(zip(wb.worksheets, formulas.worksheets), start=1):
+            values = list(ws.iter_rows())
+            formula_rows = list(formula_ws.iter_rows())
+            missing = []
+            for ri, row in enumerate(formula_rows):
+                for ci, cell in enumerate(row):
+                    if cell.data_type != "f":
+                        continue
+                    cached = values[ri][ci] if ri < len(values) and ci < len(values[ri]) else None
+                    if cached is None or cached.value is None or cached.data_type == "e":
+                        missing.append(cell.coordinate)
+            grid = _trim_grid([[_cell_text(c.value) for c in row] for row in values])
+            if missing:
+                locations = ", ".join(missing[:10])
+                if len(missing) > 10:
+                    locations += f", and {len(missing) - 10} more"
+                reason = (f"sheet '{ws.title}' has {len(missing)} formula cell(s) without usable cached "
+                          f"results ({locations}); recalculate and save the workbook in a spreadsheet "
+                          "application before analysis. Formulas were not evaluated.")
+                unavailable[si] = reason
+                notes.append(reason)
+                # Keep a visible skipped-sheet record even for an all-formula sheet.
+                raw_tables.append((si, grid))
+            elif grid:
+                raw_tables.append((si, grid))
             else:
                 notes.append(f"sheet '{ws.title}' is empty")
     finally:
         wb.close()
-    return _finalize(path, raw_tables, [], notes, n_pages=len(raw_tables))
+        if formulas is not None:
+            formulas.close()
+    result = _finalize(path, raw_tables, [], notes, n_pages=len(raw_tables))
+    for table in result.tables:
+        if table.page in unavailable:
+            table.status = "skipped"
+            table.reason = unavailable[table.page]
+            table.tidy = None
+            table.tidies = []
+    return result

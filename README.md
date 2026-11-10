@@ -228,3 +228,13 @@ The HTML report stays on your machine. Editing changes the displayed copy, not t
 1. Install the requirements and run the tests above. All should pass before you open a pull request.
 2. Keep each pull request to one change, and add a test for it.
 3. Do not commit generated reports or checkpoint folders.
+
+### Excel formula coverage
+
+Excel formulas are not recalculated by AnomalyNerd. Their saved cached results
+are used when available. If a sheet has a formula with no cached result, or a
+cached formula error, that sheet is listed as skipped with its cell locations.
+This prevents an unknown computed value from being treated as an observed blank.
+Other sheets can still be checked. Open the workbook in a spreadsheet application,
+recalculate it and save it before trying again. A cached value can still be stale;
+its presence does not establish that the formula or result is scientifically right.
