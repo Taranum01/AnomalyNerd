@@ -118,7 +118,15 @@ def _read_csv_rows(path):
         header = next(reader)
     except StopIteration:
         raise ValueError(f"{path}: no header row found (the file is empty or only comments)")
-    data = [row for row in reader if any(c.strip() for c in row)]
+    if len(set(header)) != len(header):
+        raise ValueError(f"{path}: duplicate CSV column headers are ambiguous")
+    data = []
+    for row in reader:
+        if not any(c.strip() for c in row):
+            continue
+        if len(row) > len(header):
+            raise ValueError(f"{path}: CSV row ending at line {reader.line_num} has more columns than the header")
+        data.append(row)
     return header, data
 
 
