@@ -609,6 +609,19 @@ def parse_pdf(path: str, fused_recovery=None) -> PdfParse:
                 t.status = "skipped"
                 t.reason = ("a results table was detected but it is merged with surrounding "
                             "text and the layout model could not isolate it; not analyzed")
+        # A retained stacked candidate still holds multiple table regions. Preserve its
+        # numeric data, but do not describe that known structural uncertainty as a clean parse.
+        for t in stacked_tables:
+            if any(t is retained for retained in tables):
+                caveat = ("stacked table regions were not fully separated by the layout "
+                          "fallback; retained extraction may mix distinct tables")
+                if t.status == "ok":
+                    t.status = "partial"
+                    t.reason = caveat
+                elif caveat not in t.reason:
+                    t.reason = f"{t.reason}; {caveat}" if t.reason else caveat
+                if caveat not in t.caveats:
+                    t.caveats.append(caveat)
         if fused_on:
             tables = _recover_fused_from_text_layer(path, tables, fused_tables, notes)
         _unique_docling_indices(tables)
