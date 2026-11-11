@@ -24,17 +24,22 @@ def _norm_metric(name: str) -> str:
     return re.sub(r"\s+", " ", (name or "").strip().lower())
 
 
-def _decimals_in(token: str) -> tuple:
-    """(decimals, scale) for a numeric token: decimals after the point in the mantissa,
-    scale = 10**exponent for scientific forms. '8x10^-3' -> (1, 1e-3)."""
+def _precision_parts(token: str) -> tuple:
+    """Mantissa decimal count and integer exponent, without float scaling."""
     m = re.match(r"^[+-]?(?:\d+(?:\.\d*)?|\.\d+)", token)
     if not m:
-        return 0, 1.0
+        return 0, 0
     mant = m.group(0).lstrip("+-")
     decimals = len(mant.split(".")[1]) if "." in mant else 0
     exp = re.search(r"(?:[eE]|10\^\{?)([+-]?\d+)\}?", token[m.end():])
-    scale = 10.0 ** int(exp.group(1)) if exp else 1.0
-    return decimals, scale
+    exponent = int(exp.group(1)) if exp else 0
+    return decimals, exponent
+
+
+def _decimals_in(token: str) -> tuple:
+    """Legacy (decimals, scale) helper; an unrepresentable scale is infinity."""
+    decimals, exponent = _precision_parts(token)
+    return decimals, float(f"1e{exponent}")
 
 
 def _rounding_tolerance(raw, value) -> float:
@@ -45,8 +50,11 @@ def _rounding_tolerance(raw, value) -> float:
     t = str(raw).strip()
     if not t:
         return 0.0
-    decimals, scale = _decimals_in(t)
-    tol = 0.5 * (10.0 ** -decimals) * scale
+    decimals, exponent = _precision_parts(t)
+    # Combine the powers before converting to float. A finite cell can have
+    # an exponent above 308 balanced by a fractional mantissa. Separate scale
+    # and precision floats would overflow or underflow before cancelling.
+    tol = float(f"5e{exponent - decimals - 1}")
     # guard: a raw like '1.61 [0.55, 1.94]' still reports 2 decimals of the central value
     return tol
 
