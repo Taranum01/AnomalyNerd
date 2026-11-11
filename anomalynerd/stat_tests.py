@@ -152,6 +152,14 @@ def _compare_p(kind, s, p_rep, op, p_calc) -> StatFinding:
         f"{kind}-test p={p_rep:g} is consistent with recomputed p={p_calc:.3f}", evidence=ev)
 
 
+def _numeric_range_unchecked(kind, reported):
+    """Preserve the report when a supported statistic exceeds float arithmetic."""
+    return StatFinding(kind, "not_applicable",
+        "reported values exceed the supported numeric range for this arithmetic; "
+        "not checked (this is not a scientific anomaly finding)",
+        evidence={"reported": reported})
+
+
 # ----------------------------------------------------------------- GRIM
 _MSDN = re.compile(r"\bM\s*=\s*(-?\d+\.?\d*)\s*,?\s*SD\s*=\s*(\d+\.?\d*)\s*,?\s*N\s*=\s*(\d+)", re.I)
 
@@ -171,7 +179,11 @@ def grim(stat_strings: list) -> list:
             continue
         checked += 1
         # the nearest achievable mean at this N and decimal precision
-        nearest = round(mean * n) / n
+        try:
+            nearest = round(mean * n) / n
+        except (OverflowError, ValueError):
+            findings.append(_numeric_range_unchecked("grim", s))
+            continue
         # epsilon as in grimmer: at the exact half-unit boundary (e.g. 0.75
         # reported as 0.8 with N=4) float error must not flip ok to finding
         if abs(nearest - mean) > 0.5 * 10**(-decimals) + 1e-9:
@@ -209,17 +221,22 @@ def grimmer(stat_strings: list) -> list:
         sd_dec = len((m.group(2).split(".")[1]) if "." in m.group(2) else "")
         if n < 2 or n > 1000 or sd_dec == 0 or sd < 0:
             continue
-        mean_dec = len((m.group(1).split(".")[1]) if "." in m.group(1) else "")
-        if mean_dec and abs(round(mean * n) / n - mean) > 0.5 * 10 ** (-mean_dec) + 1e-9:
-            continue  # GRIM already flags this; don't double-report
+        try:
+            mean_dec = len((m.group(1).split(".")[1]) if "." in m.group(1) else "")
+            if mean_dec and abs(round(mean * n) / n - mean) > 0.5 * 10 ** (-mean_dec) + 1e-9:
+                continue  # GRIM already flags this; don't double-report
+            T = round(mean * n)                 # integer grand total of the items
+            mean_exact = T / n
+            ss_dev = (sd ** 2) * (n - 1)        # sum of squared deviations implied by SD
+            base_sumsq = round(ss_dev + n * mean_exact ** 2)   # nearest integer sum of x_i^2
+            nearest_ss = base_sumsq - n * mean_exact ** 2
+            nearest_sd = math.sqrt(max(0.0, nearest_ss / (n - 1)))
+            step = 0.5 * 10 ** (-sd_dec)
+        except (OverflowError, ValueError):
+            checked += 1
+            findings.append(_numeric_range_unchecked("grimmer", s))
+            continue
         checked += 1
-        T = round(mean * n)                 # integer grand total of the items
-        mean_exact = T / n
-        ss_dev = (sd ** 2) * (n - 1)        # sum of squared deviations implied by SD
-        base_sumsq = round(ss_dev + n * mean_exact ** 2)   # nearest integer sum of x_i^2
-        nearest_ss = base_sumsq - n * mean_exact ** 2
-        nearest_sd = math.sqrt(max(0.0, nearest_ss / (n - 1)))
-        step = 0.5 * 10 ** (-sd_dec)
         if abs(nearest_sd - sd) > step + 1e-9:
             findings.append(StatFinding("grimmer", "finding",
                 f"reported SD={sd} with mean={mean}, N={n} is not achievable for integer-item "
