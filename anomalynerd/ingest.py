@@ -63,7 +63,8 @@ def _parse_number(s: str):
     mag = re.match(r"^([+-]?(?:\d+(?:\.\d*)?|\.\d+))\s?([kKMB])$", t2)
     if mag:
         mult = {"k": 1e3, "K": 1e3, "M": 1e6, "B": 1e9}[mag.group(2)]
-        return float(mag.group(1)) * mult
+        number = float(mag.group(1)) * mult
+        return number if math.isfinite(number) else MISSING
 
     # Mean-plus-uncertainty cells often carry a bracketed interval or parenthesized SD:
     # "0.91 [0.88, 0.94]" or "0.91 (0.03)". Keep the central estimate as the value; the
