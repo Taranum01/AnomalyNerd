@@ -911,7 +911,7 @@ def detect_point_outliers(t: TidyTable, z_thresh=3.5, min_points=5):
                 for i in outside:
                     lv, v = pairs[i]
                     flags.append(Flag(
-                        type="point_outlier", table=t.name, axis=ax_name, coords=fixed,
+                        type="point_outlier", table=t.name, axis=ax_name, coords={**fixed, ax_name: lv},
                         detail={"at": lv, "value": v, "mode": "categorical",
                                 "log_scale": is_log},
                         strength=8.0, support=1.0,
