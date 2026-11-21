@@ -238,3 +238,13 @@ This prevents an unknown computed value from being treated as an observed blank.
 Other sheets can still be checked. Open the workbook in a spreadsheet application,
 recalculate it and save it before trying again. A cached value can still be stale;
 its presence does not establish that the formula or result is scientifically right.
+
+### Resumable multi-file article review
+
+`python -m anomalynerd.corpus_cli one.pdf two.xlsx --output-dir .anomaly-corpus`
+reviews explicit local files sequentially, saves their full JSON reports and an
+atomic progress manifest, and reuses valid completed results on rerun. Each file
+has a whole-process timeout. Process completion is not full extraction or a clean
+paper; skipped checks stay visible and failed detectors are retried. LaTeX roots
+always rerun to avoid missing include-file changes. See
+[corpus review limits and examples](documentation/CORPUS_REVIEW.md).

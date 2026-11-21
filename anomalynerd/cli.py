@@ -79,7 +79,22 @@ def main(argv=None):
                     help="Do not print the suggested takeaway (what a reader could conclude)")
     ap.add_argument("--html", metavar="PATH", help="Write a local HTML report to this file")
     ap.add_argument("--json", action="store_true", help="Emit JSON instead of a text report")
+    ap.add_argument("--verbose-derived", action="store_true", help="Opt in to declared arithmetic checks, separate from outlier flags")
+    ap.add_argument("--derived-schema", help="JSON list of explicit percentage-change inputs/provenance (not automatically extracted)")
+    ap.add_argument("--derived-details", action="store_true", help="Show derived-check evidence, including abstentions")
     args = ap.parse_args(argv)
+    if (args.derived_schema or args.derived_details) and not args.verbose_derived:
+        ap.error("--derived-schema/--derived-details require --verbose-derived")
+    if args.verbose_derived and not args.derived_schema:
+        ap.error("--verbose-derived requires --derived-schema")
+    derived = None
+    if args.verbose_derived:
+        from .derived_report import load_checks
+        try:
+            derived = load_checks(args.derived_schema)
+        except (OSError, ValueError, TypeError) as exc:
+            print("Error: cannot read derived schema: " + str(exc), file=sys.stderr)
+            return 2
 
     lower = True if args.lower else (False if args.higher else None)
     try:
@@ -129,6 +144,8 @@ def main(argv=None):
         out = {"table": t.name, "metric": t.metric_name,
                "lower_is_better": t.lower_is_better,
                "flags": [f.to_dict() for f in flags]}
+        if derived is not None:
+            out["derived_checks"] = {"separate_from_outlier_flags": True, "caller_schema_requires_review": True, "results": derived}
         if caption is not None:
             out["caption"] = caption
         if takeaway:
@@ -144,6 +161,9 @@ def main(argv=None):
             print(f"\n{LABEL}:")
             for sentence in takeaway:
                 print("  - " + sentence)
+        if derived is not None:
+            from .derived_report import format_checks
+            print("\n" + format_checks(derived, details=args.derived_details))
         if caption is not None:
             print("\nCaption:\n  " + caption)
         if args.compare_caption is not None:
