@@ -119,7 +119,7 @@ def _coverage(report):
     }
 
 
-def review_files(paths, output_dir, *, seconds=120.0, detector_seconds=4.0, resume=True, run=None):
+def review_files(paths, output_dir, *, seconds=300.0, detector_seconds=4.0, resume=True, run=None):
     """Return a manifest; failed/timed-out/corrupt results are retried next run.
 
     Explicit files only. Output paths derive from hashes, never source names.
@@ -204,7 +204,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('files', nargs='+')
     parser.add_argument('--output-dir', required=True)
-    parser.add_argument('--seconds', type=float, default=120.0)
+    parser.add_argument('--seconds', type=float, default=300.0)
     parser.add_argument('--detector-seconds', type=float, default=4.0)
     parser.add_argument('--no-resume', action='store_true')
     args = parser.parse_args(argv)

@@ -4,12 +4,15 @@ Review an explicit list of up to 1,000 PDF, LaTeX, Word or Excel files:
 
 ```sh
 python -m anomalynerd.corpus_cli paper1.pdf paper2.xlsx \
-  --output-dir .anomaly-corpus --seconds 120 --detector-seconds 4
+  --output-dir .anomaly-corpus --seconds 300 --detector-seconds 4
 ```
 
 The existing article CLI handles each file unchanged in a separate sequential
 process. `--seconds` covers the whole article process, including parsing and
-statistical checks. On POSIX, deadline expiry kills the process group, including
+statistical checks. The default whole-file budget
+is 300 seconds, raised from 120: PDF parsing dominates runtime, and long PDFs
+have taken up to about 3 minutes in local use, so the old default could cut a
+slow PDF short. On POSIX, deadline expiry kills the process group, including
 its detector children. On Windows, only the parent is killed: do not treat this
 as a descendant-process resource bound there. This is a local batch tool, not a
 service, download queue, scheduler or live benchmark.
