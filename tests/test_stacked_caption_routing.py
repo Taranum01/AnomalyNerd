@@ -6,7 +6,7 @@ import pytest
 
 from anomalynerd.pdf_ingest import has_stacked_caption
 
-from conftest import fetch_arxiv_page
+from conftest import fetch_arxiv_page, require_docling
 
 
 def _t(*rows):
@@ -42,12 +42,14 @@ def test_empty_and_none_rows_do_not_match():
 # ---- end to end on the single-page slices (ordinary analyze_source path) -----------------
 @pytest.fixture(scope="module")
 def roberta():
+    require_docling()
     from anomalynerd.analyze_pdf import analyze_source
     return analyze_source(fetch_arxiv_page("roberta_1907.11692_p13"))
 
 
 @pytest.fixture(scope="module")
 def lora():
+    require_docling()
     from anomalynerd.analyze_pdf import analyze_source
     return analyze_source(fetch_arxiv_page("lora_2106.09685_p23"))
 
