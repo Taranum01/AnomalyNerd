@@ -78,6 +78,7 @@ def _analyze_csv(path, expect_flat, display_name):
 
 
 STATS_TABLE = "statistics in the text"
+XT_TABLE = "cross-table consistency"
 
 
 def _stat_views(stat_findings):
@@ -115,6 +116,11 @@ def _analyze_article(path, expect_flat):
     cards, passed = _stat_views(res.stat_findings)
     if cards:
         tables.append({"name": STATS_TABLE, "metric": "", "flags": cards})
+    if res.cross_table_flags:
+        # Cross-table contradictions are real findings; without this they were computed
+        # by the engine but never shown on the page they are advertised on.
+        tables.append({"name": XT_TABLE, "metric": "",
+                       "flags": [_flag_view(f, XT_TABLE) for f in res.cross_table_flags]})
     return {
         "source_kind": res.source_kind,
         "tables": tables,
@@ -172,7 +178,7 @@ async def analyze_upload(
         "tables": result["tables"],
         "could_not_check": result["could_not_check"],
         "stat_ok": result.get("stat_ok", []),
-        "n_tables": sum(1 for t in result["tables"] if t["name"] != STATS_TABLE),
+        "n_tables": sum(1 for t in result["tables"] if t["name"] not in (STATS_TABLE, XT_TABLE)),
         "n_flags": len(all_flags),
         "counts": counts,
         "takeaways": result.get("takeaways", []),
