@@ -43,6 +43,9 @@ def main(argv=None):
             "include_issues": getattr(res.parse,"include_issues",[]),
             "pattern_flags": [f.to_dict() for flags in res.table_flags.values()
                               for f in flags],
+            # Cross-table contradictions are findings too: keep them in the machine-readable
+            # report so JSON consumers (and saved corpus reports) do not silently lose them.
+            "cross_table_flags": [f.to_dict() for f in res.cross_table_flags],
             "stat_findings": [{"kind": s.kind, "status": s.status, "severity": s.severity,
                                "detail": s.detail, "evidence": s.evidence}
                               for s in res.stat_findings],
