@@ -6,10 +6,21 @@ downloaded once at a pinned version, the page is cut out with pypdfium2, and bot
 a local cache (ANOMALYNERD_TEST_PDFS, default ~/.cache/anomalynerd_test_pdfs). A test that
 needs a page is skipped when it cannot be fetched, for example when offline.
 """
+import importlib.util
 import os
 import urllib.request
 
 import pytest
+
+
+def require_docling():
+    """Skip the calling test when the optional docling layout-model backend is absent.
+
+    The end-to-end PDF-routing tests need docling's table model; without it the pipeline
+    honestly reports it could not read those tables, so the pinned expectations cannot
+    hold. Importing docling is heavy (torch), so probe for it without importing."""
+    if importlib.util.find_spec("docling") is None:
+        pytest.skip("docling is not installed (optional layout backend; pip install docling)")
 
 # slice name -> (arXiv id with pinned version, 1-based page)
 ARXIV_PAGES = {
