@@ -4,7 +4,7 @@ measured with and without the routing on this base). One run per slice; not whol
 
 import pytest
 
-from conftest import fetch_arxiv_page
+from conftest import fetch_arxiv_page, require_docling
 
 PINS = {
     # slice: (flag (type, priority) list, sorted table backends)
@@ -16,6 +16,8 @@ PINS = {
 
 @pytest.mark.parametrize("name", sorted(PINS))
 def test_slice_flags_unchanged(name):
+    if "docling" in PINS[name][1]:
+        require_docling()
     from anomalynerd.analyze_pdf import analyze_source
     r = analyze_source(fetch_arxiv_page(name))
     flags = sorted((f.type, f.priority) for L in r.table_flags.values() for f in L)
