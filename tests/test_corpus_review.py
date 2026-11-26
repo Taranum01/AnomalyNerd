@@ -9,6 +9,7 @@ from anomalynerd import corpus_cli as cc
 def report(path, **updates):
     value = dict(path=str(path), pages=1, tables_detected=1, tables_extraction_usable=1,
                  metric_slices_completed=1, extraction=[{'status':'ok'}], pattern_flags=[],
+                 cross_table_flags=[],
                  stat_findings=[], could_not_check=[], takeaways=[], detector_runs={'1':[{'status':'completed'}]},
                  coverage_unit='detected extraction regions')
     value.update(updates)
