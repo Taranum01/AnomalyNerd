@@ -87,7 +87,7 @@ def _valid_report(value, source):
         return False
     if value['tables_extraction_usable'] > value['tables_detected']:
         return False
-    lists = ['extraction', 'pattern_flags', 'stat_findings', 'could_not_check', 'takeaways']
+    lists = ['extraction', 'pattern_flags', 'cross_table_flags', 'stat_findings', 'could_not_check', 'takeaways']
     if any(not isinstance(value.get(k), list) for k in lists):
         return False
     if any(not isinstance(t, dict) or t.get('status') not in ('ok', 'partial', 'skipped', 'failed', 'error') for t in value['extraction']):
@@ -112,6 +112,7 @@ def _coverage(report):
         'tables_extraction_usable': report['tables_extraction_usable'],
         'metric_slices_completed': report['metric_slices_completed'],
         'pattern_flags': len(report['pattern_flags']),
+        'cross_table_flags': len(report['cross_table_flags']),
         'stat_findings': len(report['stat_findings']),
         'retryable_detectors': any(isinstance(r, dict) and r.get('status') in ('failed', 'timeout', 'error') for r in runs),
         'has_unchecked_work': bool(report['could_not_check'] or extraction_partial or unfinished or stats_unchecked or not report['tables_detected']),
