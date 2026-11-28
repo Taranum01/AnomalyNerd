@@ -17,7 +17,7 @@ import sys
 import tempfile
 
 SCHEMA = 1
-SUPPORTED = {'.pdf', '.tex', '.docx', '.xlsx'}
+SUPPORTED = {'.pdf', '.tex', '.docx', '.xlsx', '.html', '.htm'}
 
 
 def _atomic_json(path, value):
