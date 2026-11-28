@@ -123,7 +123,7 @@ pytest -q    # runs the full test suite in under a minute
 | T2 | **Monotonicity** | a value that should rise (or fall) does the opposite |
 | T3 | **Win-reversal** | the "best" method keeps flipping across a setting |
 | T4 | **Categorical exception** | "A always beats B, except in one case" |
-| T5 | **Duplicate / flatness** | the same value where it shouldn't be, or a setting with no effect |
+| T5 | **Duplicate / flatness** | the same value where it shouldn't be, two rows (or columns) that share several identical numbers, or a setting with no effect |
 | T6 | **Level shift** | a stable series quietly moves to a new level and stays there |
 | T7 | **Point outlier** | a lone point far from the rest (residual, leverage, or a spike on a flat series) |
 | T8 | **Trend** | the whole series slopes; a real flag only if you say the axis should be flat/random |
