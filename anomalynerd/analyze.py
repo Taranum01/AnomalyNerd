@@ -31,7 +31,8 @@ def score(flags: list[Flag]) -> list[Flag]:
             # A large gap amid otherwise-agreeing tables is the consequential case.
             hi = s >= 5 and sup >= 0.5; med = s >= 5 or (s >= 2 and sup >= 0.5)
         elif f.type == "flatness":
-            hi = False; med = True
+            # a column named as a measurement uncertainty is often one fixed number: list it, not MEDIUM
+            hi = False; med = not f.detail.get("uncertainty_column")
         elif f.type == "unit_mismatch":
             hi = True; med = True
         elif f.type == "point_outlier":

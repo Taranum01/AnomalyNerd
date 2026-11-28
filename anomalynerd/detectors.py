@@ -332,6 +332,22 @@ def _is_placeholder(label):
     return isinstance(label, str) and label.strip().lower() in _PLACEHOLDERS
 
 
+_UNCERTAINTY_WORDS = {"unc", "uncertainty", "uncertainties", "se", "sem", "stderr", "stdev", "std", "sd"}
+
+
+def _is_uncertainty_label(label):
+    """True for a column named as a measurement uncertainty (unc, std, stderr, standard error).
+    Such a column is often one fixed number for every row, which is not an ignored axis."""
+    import re as _re
+    if not isinstance(label, str):
+        return False
+    low = _re.sub(r"[^a-z0-9]+", " ", label.lower()).strip()
+    words = set(low.split())
+    if low in ("standard error", "standard deviation", "std err", "std dev", "std error"):
+        return True
+    return bool(words) and words <= _UNCERTAINTY_WORDS
+
+
 def _levels_are_metric_names(levels):
     """True when every level names a data split and a metric (e.g. 'Dev PPL', 'Test PPL'):
     the rows of a sideways table, not settings of an experiment."""
@@ -395,9 +411,12 @@ def detect_duplicates_and_flatness(t: TidyTable, min_decimals=2):
                     # report flatness once (representative)
                     flags.append(Flag(
                         type="flatness", table=t.name, axis=ax_name, coords={ent: e},
-                        detail={"note": f"{e} constant across all {ax_name} levels"},
+                        detail={"note": f"{e} constant across all {ax_name} levels",
+                                **({"uncertainty_column": True} if _is_uncertainty_label(e) else {})},
                         strength=1.0, support=1.0,
-                        suggestion=f"{e} is identical across all {ax_name} settings — is {ax_name} being ignored?",
+                        suggestion=(f"{e} is identical across all {ax_name} settings — is {ax_name} being ignored?"
+                                    + (" (a reported uncertainty is often one fixed value, so this is a low-priority note)"
+                                       if _is_uncertainty_label(e) else "")),
                     ))
 
     # ---- duplicates: per entity, per axis it otherwise varies on ----
