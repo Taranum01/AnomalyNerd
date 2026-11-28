@@ -1,4 +1,4 @@
-"""CLI for AnomalyNerd article analysis:  python -m anomalynerd.pdf_cli FILE (.pdf, .tex, .docx, .xlsx)"""
+"""CLI for AnomalyNerd article analysis:  python -m anomalynerd.pdf_cli FILE (.pdf, .tex, .docx, .xlsx, .html)"""
 from __future__ import annotations
 import argparse, sys, json
 
@@ -6,12 +6,12 @@ from .analyze_pdf import analyze_source, format_report
 
 
 def main(argv=None):
-    """Command-line entry point for checking the tables of a PDF, LaTeX, Word or Excel file."""
+    """Command-line entry point for checking the tables of a PDF, LaTeX, Word, Excel or HTML file."""
     ap = argparse.ArgumentParser(
         prog="anomalynerd-pdf",
         description="Find anomalies in the results tables of a PDF, LaTeX, Word or Excel file, run statistical "
                     "and digit checks, and report what could not be checked.")
-    ap.add_argument("pdf", help="Path to the file (.pdf, .tex, .docx or .xlsx)")
+    ap.add_argument("pdf", help="Path to the file (.pdf, .tex, .docx, .xlsx or .html)")
     ap.add_argument("--expect-flat", nargs="*", default=None,
                     help="Axis names that should be flat/random (a trend there is a real "
                          "anomaly, e.g. a lottery)")
