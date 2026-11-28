@@ -18,14 +18,24 @@ from html.parser import HTMLParser
 from .pdf_ingest import PdfParse, _assess_and_tidy, _extract_stat_strings
 from .office_ingest import _trim_grid, _finalize
 
+MAX_HTML_CELLS = 100_000  # expanded cell slots allowed across the whole document
+
+
+class HTMLCellLimitError(ValueError):
+    """Expanding the HTML tables would exceed the document cell budget."""
+
+
 _SKIP_TAGS = {"script", "style", "noscript", "template"}
 
 
 class _TableHTMLParser(HTMLParser):
     """Collect <table> grids (spans expanded) and the prose text outside any table."""
 
-    def __init__(self):
+    def __init__(self, *, max_cells=MAX_HTML_CELLS):
         super().__init__(convert_charrefs=True)
+        self.max_cells = max_cells
+        self._finished_cells = 0  # cells of tables already read
+        self._width = 0           # widest row seen so far in the table under construction
         self.tables = []          # list of finished grids (list[list[str]])
         self.text_parts = []      # prose outside tables
         self._skip_depth = 0      # inside script/style/...
@@ -37,6 +47,13 @@ class _TableHTMLParser(HTMLParser):
         self._cell_span = (1, 1)  # colspan, rowspan of the current cell
         self._col = 0
 
+    def _check_cells(self, width):
+        """Refuse before allocating: every row, earlier ones included, is padded to the widest row."""
+        width = max(self._width, width)
+        if self._finished_cells + (len(self._grid) + 1) * width > self.max_cells:
+            raise HTMLCellLimitError("expanded HTML cell budget exceeded")
+        self._width = width
+
     # -- helpers --------------------------------------------------------------
     def handle_starttag(self, tag, attrs):
         if tag in _SKIP_TAGS:
@@ -47,6 +64,7 @@ class _TableHTMLParser(HTMLParser):
         if tag == "table":
             if self._table_depth == 0:
                 self._grid = []
+                self._width = 0
                 self._spans = {}
             self._table_depth += 1
             return
@@ -74,6 +92,7 @@ class _TableHTMLParser(HTMLParser):
         if tag == "table":
             self._table_depth = max(0, self._table_depth - 1)
             if self._table_depth == 0 and self._grid is not None:
+                self._finished_cells += len(self._grid) * self._width
                 grid = _trim_grid([r for r in self._grid])
                 if grid:
                     self.tables.append(grid)
@@ -89,6 +108,7 @@ class _TableHTMLParser(HTMLParser):
             col = self._col
             while col in self._spans:
                 col += 1
+            self._check_cells(col + colspan)
             for dc in range(colspan):
                 if rowspan > 1:
                     # counted down at the END of each following row, so the origin row
@@ -103,6 +123,7 @@ class _TableHTMLParser(HTMLParser):
         elif tag == "tr" and self._row is not None:
             # materialize the row: carried spans fill their columns, blanks elsewhere
             width = max([len(self._row)] + [c + 1 for c in self._spans] + [0])
+            self._check_cells(width)
             cells = [""] * width
             for i, v in enumerate(self._row):
                 cells[i] = v
@@ -152,6 +173,9 @@ def parse_html(path: str) -> PdfParse:
     try:
         parser.feed(_read_text(path))
         parser.close()
+    except HTMLCellLimitError:
+        return PdfParse(path=path, n_pages=0, tables=[], stat_strings=[],
+                        notes=[f"expanded HTML table cell limit ({MAX_HTML_CELLS}) exceeded; document not analyzed (no partial results kept)"])
     except Exception as exc:   # html.parser is lenient; guard the unexpected honestly
         return PdfParse(path=path, n_pages=0, tables=[], stat_strings=[],
                         notes=[f"the HTML could not be parsed ({type(exc).__name__}); not analyzed"])
