@@ -100,7 +100,7 @@ class RealCheckpointIntegration(unittest.TestCase):
             self.assertIn('duplicate', {f.type for f in first})
             self.assertIn('flatness', {f.type for f in first})
             files = sorted(Path(root).glob('*.json'))
-            self.assertEqual(8, len(files))
+            self.assertEqual(len(bounded.DETECTORS), len(files))
             preserved = {p.name: p.read_bytes() for p in files[1:]}
             files[0].write_text('null')
             resumed, again = bounded.run_bounded(table, seconds=4, checkpoint_dir=root)
