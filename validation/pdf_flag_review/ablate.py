@@ -24,6 +24,8 @@ if __name__ == "__main__":
     from anomalynerd import bounded, analyze_pdf
     if check in bounded.DETECTORS:
         bounded.DETECTORS = tuple(d for d in bounded.DETECTORS if d != check)
+        if check == "detect_copied_rows":
+            analyze_pdf._copied_rows_raw = lambda table, **kwargs: []   # the raw-cell version of the same check
     elif check == "unit_mismatch":
         analyze_pdf._unit_mismatches = lambda table, min_cells=5: []
     elif check == "stats":
