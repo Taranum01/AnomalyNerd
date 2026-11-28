@@ -35,8 +35,8 @@ class PdfAnalysis:
     takeaways: dict = field(default_factory=dict)   # (page, idx) -> list of sentences
 
 
-_UNIT = {"docx": "table", "xlsx": "sheet"}   # what a "page" number means per format
-_LABEL = {"latex": "LaTeX source", "docx": "Word document", "xlsx": "Excel workbook"}
+_UNIT = {"docx": "table", "xlsx": "sheet", "html": "table"}   # what a "page" number means per format
+_LABEL = {"latex": "LaTeX source", "docx": "Word document", "xlsx": "Excel workbook", "html": "HTML document"}
 
 
 import re as _re
@@ -142,6 +142,10 @@ def analyze_source(path: str, expect_flat=None, detector_seconds=4.0, checkpoint
         from .office_ingest import parse_xlsx
         parse = parse_xlsx(path)
         return _analyze_parse(path, parse, expect_flat, source_kind="xlsx", detector_seconds=detector_seconds, checkpoint_dir=checkpoint_dir)
+    if low.endswith((".html", ".htm")):
+        from .html_ingest import parse_html
+        parse = parse_html(path)
+        return _analyze_parse(path, parse, expect_flat, source_kind="html", detector_seconds=detector_seconds, checkpoint_dir=checkpoint_dir)
     parse = parse_pdf(path, fused_recovery=fused_recovery)
     return _analyze_parse(path, parse, expect_flat, source_kind="pdf", detector_seconds=detector_seconds, checkpoint_dir=checkpoint_dir)
 
@@ -253,7 +257,7 @@ def format_report(res: PdfAnalysis) -> str:
     L.append(f"AnomalyNerd {label} report for '{p.path.split('/')[-1]}'")
     L.append("=" * 64)
     usable = [t for t in p.tables if t.status in ("ok", "partial")]
-    if kind in ("latex", "docx", "xlsx"):
+    if kind in ("latex", "docx", "xlsx", "html"):
         L.append(f"Tables found: {len(p.tables)}   Tables analyzed: {len(usable)}   "
                  f"Reported statistics found: {len(p.stat_strings)}")
     else:
