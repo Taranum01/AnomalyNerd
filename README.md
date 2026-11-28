@@ -12,7 +12,7 @@ Part of the "Nerd" family of research tools.
 ## Quick start
 
 ```bash
-pip install -r requirements.txt        # Python 3.9+ (core is pure stdlib; pytest for tests)
+pip install -r requirements.txt        # Python 3.10+ (CI-tested; 3.9 is EOL and no longer covered; core is pure stdlib; pytest for tests)
 
 # analyze any CSV:
 python -m anomalynerd.cli examples/halley_ozone_october.csv --metric ozone_DU --lower-better
