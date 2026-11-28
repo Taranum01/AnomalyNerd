@@ -79,8 +79,15 @@ python -m anomalynerd.pdf_cli paper.pdf            # a compiled PDF (incl. appen
 python -m anomalynerd.pdf_cli paper.tex            # LaTeX source (far cleaner extraction)
 python -m anomalynerd.pdf_cli paper.docx           # a Word document: every table, plus statistics in the text
 python -m anomalynerd.pdf_cli results.xlsx         # an Excel workbook: each sheet is read as a table
+python -m anomalynerd.pdf_cli results.html         # an HTML page: every <table>, plus statistics in the text
 python -m anomalynerd.pdf_cli paper.pdf --json
 ```
+
+HTML pages (an exported results page or an arXiv HTML paper) store tables as real cells, so
+they are read exactly, with column/row spans expanded to the grid a reader sees; the prose
+between tables is scanned for reported statistics, as with Word. Reading HTML uses only the
+Python standard library: nothing is downloaded, and links, scripts and remote assets in the
+file are ignored.
 
 Prefer the LaTeX source when you have it: a compiled PDF often stores tables as
 borderless layouts or images that cannot be extracted cleanly, whereas LaTeX ``tabular``
@@ -153,7 +160,7 @@ bin or group) — AnomalyNerd is a results-table scanner, not a raw big-data ML 
 ### Local web page
 
 A small web page lets you upload a file and browse the flagged anomalies, filtered by priority.
-It accepts CSV, Excel, PDF, LaTeX and Word files.
+It accepts CSV, Excel, PDF, LaTeX, Word and HTML files.
 
 ```bash
 pip install -r web/requirements.txt
@@ -176,6 +183,7 @@ anomalynerd/            the library
   pdf_ingest.py         finds results tables in a PDF
   latex_ingest.py       finds results tables in LaTeX source
   office_ingest.py      reads tables from Word (.docx) and Excel (.xlsx) files
+  html_ingest.py        reads tables and statistics from local HTML pages (stdlib only)
   stat_tests.py         statcheck, GRIM and Benford checks
   bounded.py            runs each detector with a time limit
   html_report.py        writes the local review page
@@ -192,8 +200,8 @@ DESIGN.md               the full design notes (detectors, edge cases, validation
 - It **points, it doesn't diagnose** — it tells you *where* to look, not *why*.
 - Telling a genuine regime-shift from an accelerating trend is hard; such cases are reported
   as **low-confidence candidates**, not certainties.
-- Input can be CSV, Excel, PDF, LaTeX or Word. PDF is the least reliable, because tables have to be
-  reconstructed from the page layout; prefer the LaTeX source, Word or Excel when you have them.
+- Input can be CSV, Excel, PDF, LaTeX, Word or HTML. PDF is the least reliable, because tables have to be
+  reconstructed from the page layout; prefer the LaTeX source, Word, Excel or HTML when you have them.
 
 ### Bounded article review (local)
 
