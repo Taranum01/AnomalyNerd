@@ -40,7 +40,7 @@ def _example_bytes(name):
 def test_home_page_lists_all_input_formats(client):
     r = client.get("/")
     assert r.status_code == 200
-    assert 'accept=".csv,.xlsx,.pdf,.tex,.docx"' in r.text
+    assert 'accept=".csv,.xlsx,.pdf,.tex,.docx,.html,.htm"' in r.text
 
 
 def test_csv_upload_returns_known_trend(client):
