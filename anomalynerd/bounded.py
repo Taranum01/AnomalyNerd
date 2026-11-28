@@ -8,9 +8,9 @@ from .model import Flag,is_num
 from .analyze import score,is_pathological,_suppress_index_axis,_suppress_jumps_adjacent_to_outliers
 
 DETECTORS = ('detect_numeric_jumps','detect_win_reversals','detect_monotonicity',
-             'detect_cat_exceptions','detect_duplicates_and_flatness','detect_level_shifts',
+             'detect_cat_exceptions','detect_duplicates_and_flatness','detect_copied_rows','detect_level_shifts',
              'detect_point_outliers','detect_trends')
-VERSION = 'bounded-v1'
+VERSION = 'bounded-v2'
 
 def _subprocess_main():
     """Importable worker entry point; never re-import the caller's __main__."""
