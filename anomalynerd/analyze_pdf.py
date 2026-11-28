@@ -89,6 +89,69 @@ def _unit_mismatches(table, min_cells=5):
     return flags
 
 
+_RAW_NUMBER = _re.compile(r"^\s*([+-]?\d+(?:\.\d+)?)\s*[%*]?\s*$")
+
+
+def _copied_rows_raw(table, min_cells=3, min_distinct=3, min_bits=6.0):
+    """Look for two named rows that share several identical numbers, in the table as it was read
+    (cells as text). This catches a copied row in a table whose tidy form was too tangled for
+    the pattern detectors, for example one with a header spread over several lines. The test is
+    the one in detectors.detect_copied_rows: each shared number counts for the powers of ten that
+    separate it from a coincidence, given the spread of its column and its printed decimals."""
+    import math
+    from .model import Flag
+    from .detectors import _coincidence_bits
+    rows = [list(r) for r in (table.rows or [])]
+    if len(rows) < 2 or len(rows) > 400:
+        return []
+    named = {}
+    for i, r in enumerate(rows):
+        label = str(r[0]).strip() if r else ""
+        if label and label not in ("-", "--"):
+            named.setdefault(label, []).append(i)
+    keep = [v[0] for v in named.values() if len(v) == 1]
+    width = max((len(r) for r in rows), default=0)
+    num = {}
+    for i in keep:
+        for j in range(1, width):
+            if j < len(rows[i]):
+                m = _RAW_NUMBER.match(str(rows[i][j]))
+                if m:
+                    num[(i, j)] = m.group(1)
+    col_vals = {}
+    for (i, j), txt in num.items():
+        col_vals.setdefault(j, []).append(float(txt))
+    flags = []
+    for x in range(len(keep)):
+        for y in range(x + 1, len(keep)):
+            a, b = keep[x], keep[y]
+            both = [j for j in range(1, width) if (a, j) in num and (b, j) in num]
+            same = [j for j in both if float(num[(a, j)]) == float(num[(b, j)])]
+            if len(same) < min_cells or len(same) < 0.6 * len(both):
+                continue
+            vals = [float(num[(a, j)]) for j in same]
+            if len(set(vals)) < min_distinct:
+                continue
+            bits = 0.0
+            for j in same:
+                txt = num[(a, j)]
+                dec = len(txt.split(".")[1]) if "." in txt else 0
+                spread = max(col_vals[j]) - min(col_vals[j]) if len(col_vals[j]) >= 2 else 0.0
+                bits += _coincidence_bits(col_vals[j], float(txt), spread, dec)
+            if bits < min_bits:
+                continue
+            la, lb = str(rows[a][0]).strip(), str(rows[b][0]).strip()
+            flags.append(Flag(
+                type="duplicate", table=f"table {getattr(table, 'index_on_page', 0)}", axis="row", coords={"row": lb},
+                detail={"kind": "row_copy", "copied_from": la, "target": lb, "values": vals,
+                        "of_cells": len(both), "bits": round(bits, 1)},
+                strength=float(len(same)), support=len(same) / len(both),
+                suggestion=f"{lb} repeats {len(same)} of {len(both)} numbers of {la} exactly "
+                           f"({', '.join(f'{v:g}' for v in vals[:6])}) \u2014 check for copy/paste.",
+            ))
+    return flags
+
+
 def _has_fused_cells(table):
     """True when a cell still holds two separate numbers after repair, so rows are misaligned."""
     from .pdf_ingest import is_fused
@@ -195,6 +258,19 @@ def _analyze_parse(path, parse, expect_flat, source_kind="pdf", detector_seconds
             unit_flags = score(_unit_mismatches(t))
             if unit_flags:
                 res.table_flags.setdefault((page, t.index_on_page, 0), []).extend(unit_flags)
+            have = {f.detail.get("target") for k, fl in res.table_flags.items()
+                    if tuple(k[:2]) == (page, t.index_on_page) for f in fl
+                    if f.detail.get("kind") == "row_copy"}
+            have_text = " ".join(f.suggestion for k, fl in res.table_flags.items()
+                                 if tuple(k[:2]) == (page, t.index_on_page) for f in fl
+                                 if f.detail.get("kind") == "row_copy")
+            try:
+                copy_flags = [f for f in score(_copied_rows_raw(t))
+                              if f.detail.get("target") not in have and f.detail.get("target") not in have_text]
+            except Exception:
+                copy_flags = []
+            if copy_flags:
+                res.table_flags.setdefault((page, t.index_on_page, 0), []).extend(copy_flags)
         elif t.status == "non_table":
             # metadata/cover-sheet/prose block mis-detected as a table: not a results table,
             # so drop it silently (counted below) rather than cluttering "could not check".
