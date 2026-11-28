@@ -118,6 +118,15 @@ def _jump_is_endpoint_of_climb(ys, jump_index):
 
 
 # ---------------------------------------------------------------- T1
+def _sig_digits(v) -> int:
+    """Number of significant digits in the printed form of a number (0.01 has 1, 0.1596 has 4)."""
+    text = f"{abs(v):.12g}".lower()
+    if "e" in text:
+        text = text.split("e")[0]
+    digits = text.replace(".", "").lstrip("0")
+    return len(digits.rstrip("0")) if "." not in text else len(digits)
+
+
 def detect_numeric_jumps(t: TidyTable, k_mad=4.0, ratio=3.0, min_points=3):
     """Flag adjacent steps along a numeric axis that jump far more than the typical step."""
     flags = []
@@ -438,7 +447,7 @@ def detect_duplicates_and_flatness(t: TidyTable, min_decimals=2):
                         if not is_num(v):
                             continue
                         dec = len(f"{v}".split(".")[1]) if "." in f"{v}" else 0
-                        if dec < min_decimals:
+                        if dec < min_decimals or _sig_digits(v) < 3:
                             continue
                         seen.setdefault(round(v, 6), []).append(lv)
                     for val, lvs in seen.items():
@@ -454,9 +463,115 @@ def detect_duplicates_and_flatness(t: TidyTable, min_decimals=2):
     return flags
 
 
+def _coincidence_bits(values, shared, spread, decimals, cap=5.0):
+    """Powers of ten of evidence that a number shared by two rows is not a coincidence.
+
+    Two limits apply and the smaller wins. The first is the column's spread divided by the
+    number's printed resolution. The second is the column itself: when other rows of the same
+    column already repeat values (layer counts, hidden sizes, a design choice), the share of
+    equal pairs among the other pairs bounds how surprising one more repeat is."""
+    import math
+    from collections import Counter
+    bits = math.log10(max(spread / (10.0 ** (-decimals)), 1.0))
+    counts = Counter(round(v, 6) for v in values)
+    n = len(values)
+    pairs = n * (n - 1) / 2
+    equal_other = sum(c * (c - 1) / 2 for c in counts.values()) - 1
+    if pairs > 1 and equal_other > 0:
+        bits = min(bits, -math.log10(equal_other / (pairs - 1)))
+    return max(0.0, min(cap, bits))
+
+
+def detect_copied_rows(t: TidyTable, min_cells=3, min_distinct=3, min_bits=6.0):
+    """Flag two rows (or two columns) of a table that share several identical numbers.
+
+    A row copied over another is a classic error. A row is one combination of the table's row
+    axes; a column is one level of the entity axis (the measured method or column header), or,
+    for a table with no entity axis, the second axis. For every pair of rows, count the cells
+    where both hold the same number. Each such cell is weighed by how unlikely a coincidence is:
+    the column's range divided by the number's printed resolution, in powers of ten (a column
+    that spans 0.01 to 0.10 in steps of 0.01 gives one power of ten per cell, one that spans 40
+    to 90 with two decimals gives four). A pair is flagged when it shares at least `min_cells`
+    cells, at least `min_distinct` different values (a repeated constant is not a copy), most of
+    the cells that both rows have, and at least `min_bits` powers of ten in all. The same test
+    runs on pairs of columns."""
+    import math
+    flags = []
+    names = list(t.axes)
+    if len(names) < 2:
+        return flags
+    ent = t.entity_axis if t.entity_axis in names else names[-1]
+    others = [n for n in names if n != ent]
+    cells = {}
+    for r in t.rows:
+        v = r.get("value")
+        if is_num(v):
+            cells[(tuple(r.get(n) for n in others), r.get(ent))] = v
+    row_keys = list(dict.fromkeys(k[0] for k in cells))
+    col_keys = list(dict.fromkeys(k[1] for k in cells))
+    seen = set()
+
+    def label(key, axes):
+        return " / ".join(str(x) for x in key) if isinstance(key, tuple) else str(key)
+
+    for by_rows in (True, False):
+        series = row_keys if by_rows else col_keys
+        index = col_keys if by_rows else row_keys
+        if len(series) < 2 or len(index) < min_cells or len(series) > 400 or len(index) > 400:
+            continue
+
+        def get(s_, i_):
+            return cells.get((s_, i_)) if by_rows else cells.get((i_, s_))
+
+        rng = {}
+        col_values = {}
+        for i_ in index:
+            vs = [get(s_, i_) for s_ in series if get(s_, i_) is not None]
+            col_values[i_] = vs
+            rng[i_] = (max(vs) - min(vs)) if len(vs) >= 2 else 0.0
+        for x in range(len(series)):
+            for y in range(x + 1, len(series)):
+                sa, sb = series[x], series[y]
+                if any(_is_placeholder(z) for z in (sa if isinstance(sa, tuple) else (sa,))) or \
+                   any(_is_placeholder(z) for z in (sb if isinstance(sb, tuple) else (sb,))):
+                    continue
+                both = [i_ for i_ in index if get(sa, i_) is not None and get(sb, i_) is not None]
+                same = [i_ for i_ in both if round(get(sa, i_), 6) == round(get(sb, i_), 6)]
+                if len(same) < min_cells or len(same) < 0.6 * len(both):
+                    continue
+                vals = [round(get(sa, i_), 6) for i_ in same]
+                if len(set(vals)) < min_distinct:
+                    continue
+                bits = 0.0
+                for i_ in same:
+                    text = f"{get(sa, i_)}"
+                    dec = len(text.split(".")[1]) if "." in text and "e" not in text else 0
+                    bits += _coincidence_bits(col_values[i_], get(sa, i_), rng[i_], dec)
+                if bits < min_bits:
+                    continue
+                key = (frozenset((str(sa), str(sb))), frozenset(str(i_) for i_ in same))
+                if key in seen:
+                    continue
+                seen.add(key)
+                axis_name = " / ".join(others) if by_rows else ent
+                la, lb = label(sa, others), label(sb, others)
+                coords = ({n: v for n, v in zip(others, sb)} if by_rows else {ent: sb})
+                flags.append(Flag(
+                    type="duplicate", table=t.name, axis=axis_name, coords=coords,
+                    detail={"kind": "row_copy", "copied_from": la, "target": lb,
+                            "cells": [str(i_) for i_ in same], "values": vals,
+                            "of_cells": len(both), "bits": round(bits, 1)},
+                    strength=float(len(same)), support=len(same) / len(both),
+                    suggestion=f"{lb} repeats {len(same)} of {len(both)} numbers of {la} exactly "
+                               f"({', '.join(f'{v:g}' for v in vals[:6])}) \u2014 check for copy/paste.",
+                ))
+    return flags
+
+
 ALL_DETECTORS = [
     detect_numeric_jumps, detect_win_reversals,
     detect_monotonicity, detect_cat_exceptions, detect_duplicates_and_flatness,
+    detect_copied_rows,
 ]
 
 
