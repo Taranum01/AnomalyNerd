@@ -24,6 +24,10 @@ def score(flags: list[Flag]) -> list[Flag]:
         elif f.type == "cat_exception":
             # support is fraction the rule holds; higher support + fewer fails = higher priority
             hi = sup >= 0.9; med = sup >= 0.75
+        elif f.type == "duplicate" and f.detail.get("kind") == "row_copy":
+            # a copied row: weighed by how unlikely the matching numbers are by chance
+            bits = f.detail.get("bits", 0.0)
+            hi = bits >= 9.0 and sup >= 0.8; med = bits >= 6.0
         elif f.type == "duplicate":
             hi = s >= 3; med = s >= 2
         elif f.type == "cross_table_inconsistency":
@@ -134,6 +138,7 @@ def analyze(t: TidyTable, expected_monotonic: dict | None = None, expect_flat: l
     flags += detectors.detect_monotonicity(t, expected=expected_monotonic)
     flags += detectors.detect_cat_exceptions(t)
     flags += detectors.detect_duplicates_and_flatness(t)
+    flags += detectors.detect_copied_rows(t)
     flags += detectors.detect_level_shifts(t, expect_flat=expect_flat)
     flags += detectors.detect_point_outliers(t)
     flags += detectors.detect_trends(t, index_axes=idx, expect_flat=expect_flat)
