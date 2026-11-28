@@ -30,7 +30,7 @@ from anomalynerd.ingest import read_csv                     # noqa: E402
 from anomalynerd.analyze import analyze                     # noqa: E402
 
 MAX_UPLOAD_BYTES = 25 * 1024 * 1024        # 25 MB upload cap
-ALLOWED_EXT = {".csv", ".pdf", ".tex", ".docx", ".xlsx"}
+ALLOWED_EXT = {".csv", ".pdf", ".tex", ".docx", ".xlsx", ".html", ".htm"}
 
 app = FastAPI(title="AnomalyNerd", description="Results-table anomaly flagging")
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
@@ -139,7 +139,7 @@ async def analyze_upload(
     name = file.filename or "upload"
     ext = Path(name).suffix.lower()
     if ext not in ALLOWED_EXT:
-        raise HTTPException(400, f"Unsupported file type '{ext}'. Use CSV, PDF, LaTeX (.tex), Word (.docx) or Excel (.xlsx).")
+        raise HTTPException(400, f"Unsupported file type '{ext}'. Use CSV, PDF, LaTeX (.tex), Word (.docx), Excel (.xlsx) or HTML (.html).")
 
     data = await file.read()
     if len(data) > MAX_UPLOAD_BYTES:
