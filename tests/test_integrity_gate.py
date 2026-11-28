@@ -123,7 +123,7 @@ def test_detectors_complete_in_other_launch_contexts(tmp_path, launch):
         'from anomalynerd.bounded import run_bounded\n'
         't = read_tables(%r)[0]\n'
         'flags, runs = run_bounded(t, seconds=8)\n'
-        'assert len(runs) == 8 and all(r["status"] == "completed" for r in runs)\n'
+        'assert len(runs) == 9 and all(r["status"] == "completed" for r in runs)\n'
         'assert "trend" in {f.type for f in flags}\n'
     ) % os.path.join(repo, 'examples/draft_lottery_1970.csv')
     env = os.environ.copy(); env['PYTHONPATH'] = repo
